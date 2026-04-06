@@ -391,18 +391,22 @@ function calcTotalHoursServer(timeStr) {
 app.get('/api/entries/:id/export', (req, res) => {
     const entry = entries[req.params.id];
     if (!entry) return res.status(404).json({ error: 'Entry not found' });
-    const hdr = ['Release Owner', 'Release Date', 'Team Name', 'Lead Name', 'Member Name', 'Compoff/Allowance', 'Time', 'Total Hours', 'Created By'];
+    const hdr = ['Release Owner', 'Release Date', 'Team Name', 'Lead Name', 'Member Name', 'Login Time', 'Logout Time', 'Total Hours', 'Compoff/Allowance', 'Created By'];
     const rows = [hdr];
     entry.teams.forEach(t => {
         if (t.lineItems.length === 0) {
-            rows.push([entry.releaseOwner, entry.date, t.teamName, t.leadName, '', '', '', '', t.createdBy]);
+            rows.push([entry.releaseOwner, entry.date, t.teamName, t.leadName, '', '', '', '', '', t.createdBy]);
         } else {
             t.lineItems.forEach((li, i) => {
+                const parts = (li.time || '').split('-').map(s => s.trim());
+                const loginTime = parts[0] || '';
+                const logoutTime = parts[1] || '';
                 rows.push([
                     i === 0 ? entry.releaseOwner : '', i === 0 ? entry.date : '',
                     i === 0 ? t.teamName : '', i === 0 ? t.leadName : '',
-                    li.name, li.allowanceCompoff, li.time || '',
+                    li.name, loginTime, logoutTime,
                     calcTotalHoursServer(li.time || ''),
+                    li.allowanceCompoff,
                     i === 0 ? t.createdBy : '',
                 ]);
             });
@@ -420,9 +424,14 @@ app.get('/api/entries/:eid/teams/:tid/export', (req, res) => {
     if (!entry) return res.status(404).json({ error: 'Entry not found' });
     const team = entry.teams.find(t => t.id === req.params.tid);
     if (!team) return res.status(404).json({ error: 'Team not found' });
-    const hdr = ['Name', 'Compoff/Allowance', 'Time', 'Total Hours', 'Lead'];
+    const hdr = ['Name', 'Login Time', 'Logout Time', 'Total Hours', 'Compoff/Allowance', 'Lead'];
     const rows = [hdr];
-    team.lineItems.forEach(li => rows.push([li.name, li.allowanceCompoff, li.time || '', calcTotalHoursServer(li.time || ''), team.leadName]));
+    team.lineItems.forEach(li => {
+        const parts = (li.time || '').split('-').map(s => s.trim());
+        const loginTime = parts[0] || '';
+        const logoutTime = parts[1] || '';
+        rows.push([li.name, loginTime, logoutTime, calcTotalHoursServer(li.time || ''), li.allowanceCompoff, team.leadName]);
+    });
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="${team.teamName.replace(/\s+/g, '_')}-${entry.date}.csv"`);
@@ -434,11 +443,13 @@ app.get('/api/entries/:eid/teams/:tid/export', (req, res) => {
 const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'build');
 if (fs.existsSync(frontendBuildPath)) {
     app.use(express.static(frontendBuildPath));
-    app.get('*', (req, res) => {
-        if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
-            res.sendFile(path.join(frontendBuildPath, 'index.html'));
+    // Catchall: serve index.html for any non-API, non-upload route (SPA routing)
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+            return next();
         }
+        res.sendFile(path.join(frontendBuildPath, 'index.html'));
     });
 }
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Backend running → http://0.0.0.0:${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

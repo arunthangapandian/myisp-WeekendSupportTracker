@@ -104,7 +104,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const [uploadError, setUploadError] = useState('');
     const [saving, setSaving] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
-    const [filters, setFilters] = useState({ name: '', time: '', allowanceCompoff: '' });
+    const [filters, setFilters] = useState({ name: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -221,17 +221,27 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         const val = String(row[acKey] || '').trim().toLowerCase();
                         if (val.includes('allowance')) ac = 'Allowance';
                     }
-                    // Support "Time" or separate "Start Time"/"End Time" columns
+                    // Support "Time", "Login Time"/"Logout Time", or "Start Time"/"End Time" columns
                     const timeKey = Object.keys(row).find(k => k.toLowerCase() === 'time');
-                    const startTimeKey = Object.keys(row).find(k => k.toLowerCase().includes('start'));
-                    const endTimeKey = Object.keys(row).find(k => k.toLowerCase().includes('end'));
+                    const loginTimeKey = Object.keys(row).find(k =>
+                        k.toLowerCase().includes('login') || k.toLowerCase().includes('start'));
+                    const logoutTimeKey = Object.keys(row).find(k =>
+                        k.toLowerCase().includes('logout') || k.toLowerCase().includes('end'));
                     let time = '';
                     if (timeKey) {
                         time = String(row[timeKey] || '').trim();
-                    } else if (startTimeKey && endTimeKey) {
-                        const st = String(row[startTimeKey] || '').trim();
-                        const et = String(row[endTimeKey] || '').trim();
+                    } else if (loginTimeKey && logoutTimeKey) {
+                        const st = String(row[loginTimeKey] || '').trim();
+                        const et = String(row[logoutTimeKey] || '').trim();
                         if (st && et) time = `${st} - ${et}`;
+                        else if (st) time = `${st} - `;
+                        else if (et) time = ` - ${et}`;
+                    } else if (loginTimeKey) {
+                        const st = String(row[loginTimeKey] || '').trim();
+                        if (st) time = `${st} - `;
+                    } else if (logoutTimeKey) {
+                        const et = String(row[logoutTimeKey] || '').trim();
+                        if (et) time = ` - ${et}`;
                     }
 
                     const existingIdx = lineItems.findIndex(li =>
@@ -273,7 +283,9 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     // ── Filtering ──
     const filteredItems = lineItems.filter(li => {
         if (filters.name && !li.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
-        if (filters.time && !((li.time || '').toLowerCase().includes(filters.time.toLowerCase()))) return false;
+        const { start, end } = parseTimeParts(li.time);
+        if (filters.loginTime && !(start.toLowerCase().includes(filters.loginTime.toLowerCase()))) return false;
+        if (filters.logoutTime && !(end.toLowerCase().includes(filters.logoutTime.toLowerCase()))) return false;
         if (filters.allowanceCompoff && filters.allowanceCompoff !== 'All' && li.allowanceCompoff !== filters.allowanceCompoff) return false;
         return true;
     });
@@ -346,7 +358,8 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Name</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Time</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Login Time</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Logout Time</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Total Hours</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Compoff / Allowance</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Actions</TableCell>
@@ -362,7 +375,12 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                             </TableCell>
                                             <TableCell>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
-                                                    value={filters.time} onChange={e => setFilter('time', e.target.value)}
+                                                    value={filters.loginTime} onChange={e => setFilter('loginTime', e.target.value)}
+                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                            </TableCell>
+                                            <TableCell>
+                                                <TextField size="small" variant="standard" placeholder="Filter..."
+                                                    value={filters.logoutTime} onChange={e => setFilter('logoutTime', e.target.value)}
                                                     InputProps={{ sx: { fontSize: 12 } }} fullWidth />
                                             </TableCell>
                                             <TableCell />
@@ -392,23 +410,22 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                     ) : li.name}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                        <Select size="small" value={start} displayEmpty
-                                                            onChange={e => updateField(li.id, 'time', buildTimeStr(e.target.value, end))}
-                                                            sx={{ minWidth: 115, fontSize: 13 }}
-                                                            MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
-                                                            <MenuItem value="" sx={{ fontSize: 12 }}>Start Time</MenuItem>
-                                                            {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
-                                                        </Select>
-                                                        <Typography sx={{ fontSize: 13, mx: 0.3, color: '#a5b4fc' }}>—</Typography>
-                                                        <Select size="small" value={end} displayEmpty
-                                                            onChange={e => updateField(li.id, 'time', buildTimeStr(start, e.target.value))}
-                                                            sx={{ minWidth: 115, fontSize: 13 }}
-                                                            MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
-                                                            <MenuItem value="" sx={{ fontSize: 12 }}>End Time</MenuItem>
-                                                            {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
-                                                        </Select>
-                                                    </Box>
+                                                    <Select size="small" value={start} displayEmpty
+                                                        onChange={e => updateField(li.id, 'time', buildTimeStr(e.target.value, end))}
+                                                        sx={{ minWidth: 115, fontSize: 13 }}
+                                                        MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
+                                                        <MenuItem value="" sx={{ fontSize: 12 }}>Select</MenuItem>
+                                                        {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
+                                                    </Select>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Select size="small" value={end} displayEmpty
+                                                        onChange={e => updateField(li.id, 'time', buildTimeStr(start, e.target.value))}
+                                                        sx={{ minWidth: 115, fontSize: 13 }}
+                                                        MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
+                                                        <MenuItem value="" sx={{ fontSize: 12 }}>Select</MenuItem>
+                                                        {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
+                                                    </Select>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600, color: '#a5b4fc', whiteSpace: 'nowrap' }}>
