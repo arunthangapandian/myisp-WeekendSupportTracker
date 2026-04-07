@@ -16,6 +16,7 @@ import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Badge from '@mui/material/Badge';
 import Collapse from '@mui/material/Collapse';
+import TextField from '@mui/material/TextField';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -26,6 +27,9 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FolderIcon from '@mui/icons-material/Folder';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * Left sidebar: narrower panel, Create New Release, download, entries grouped by year
@@ -41,6 +45,9 @@ export default function Sidebar() {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deletedCount, setDeletedCount] = useState(0);
     const [expandedYears, setExpandedYears] = useState({});
+    const [editingEntryId, setEditingEntryId] = useState(null);
+    const [editDate, setEditDate] = useState('');
+    const [editOwner, setEditOwner] = useState('');
 
     // Load deleted items count
     useEffect(() => {
@@ -86,6 +93,35 @@ export default function Sidebar() {
 
     const toggleYear = (year) => {
         setExpandedYears(prev => ({ ...prev, [year]: !prev[year] }));
+    };
+
+    const startEditing = (entry, e) => {
+        e.stopPropagation();
+        setEditingEntryId(entry.id);
+        setEditDate(entry.date);
+        setEditOwner(entry.releaseOwner);
+    };
+
+    const cancelEditing = (e) => {
+        if (e) e.stopPropagation();
+        setEditingEntryId(null);
+        setEditDate('');
+        setEditOwner('');
+    };
+
+    const saveEditing = async (e) => {
+        if (e) e.stopPropagation();
+        if (!editOwner.trim()) { addToast('Release Owner cannot be empty', 'error'); return; }
+        if (!editDate) { addToast('Date cannot be empty', 'error'); return; }
+        try {
+            await api.updateEntry(editingEntryId, { releaseOwner: editOwner.trim(), date: editDate });
+            const list = await api.getEntries();
+            setEntries(list);
+            addToast('Entry updated successfully', 'success');
+            setEditingEntryId(null);
+        } catch (err) {
+            addToast(err.message || 'Update failed', 'error');
+        }
     };
 
     const handleDownload = () => {
@@ -182,29 +218,63 @@ export default function Sidebar() {
                                 </ListItemButton>
                                 <Collapse in={!!expandedYears[year]} timeout="auto">
                                     {yearEntries.map(entry => (
-                                        <ListItemButton key={entry.id} selected={selectedEntryId === entry.id}
-                                            onClick={() => navigateToEntry(entry.id)}
-                                            sx={{
-                                                borderRadius: 1, mb: 0.3, pr: 1, pl: 3, color: '#e0e7ff',
-                                                '&.Mui-selected': { bgcolor: '#312e81' },
-                                                '&:hover': { bgcolor: '#312e81' }
-                                            }}>
-                                            <ListItemIcon sx={{ minWidth: 26 }}>
-                                                <CalendarTodayIcon sx={{ fontSize: 15, color: '#a5b4fc' }} />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary={formatDateLabel(entry.date)}
-                                                secondary={entry.releaseOwner}
-                                                primaryTypographyProps={{ fontSize: 13, fontWeight: 600, color: '#e0e7ff' }}
-                                                secondaryTypographyProps={{ fontSize: 11, noWrap: true, color: '#a5b4fc' }}
-                                            />
-                                            <IconButton size="small" edge="end"
-                                                onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry); }}
-                                                aria-label={`Delete ${formatDateLabel(entry.date)}`}
-                                                sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#c7d2fe' }}>
-                                                <DeleteIcon sx={{ fontSize: 14 }} />
-                                            </IconButton>
-                                        </ListItemButton>
+                                        editingEntryId === entry.id ? (
+                                            <Box key={entry.id} sx={{ px: 1.5, py: 1, ml: 2, mb: 0.5, bgcolor: '#252149', borderRadius: 1, border: '1px solid #4f46e5' }}>
+                                                <TextField fullWidth size="small" label="Owner" value={editOwner}
+                                                    onChange={e => setEditOwner(e.target.value)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    sx={{ mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 } }} />
+                                                <TextField fullWidth size="small" type="date" label="Date" value={editDate}
+                                                    onChange={e => setEditDate(e.target.value)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    InputLabelProps={{ shrink: true }}
+                                                    sx={{ mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 },
+                                                        '& input::-webkit-calendar-picker-indicator': { filter: 'invert(1)', cursor: 'pointer' } }} />
+                                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                                                    <Tooltip title="Save">
+                                                        <IconButton size="small" onClick={saveEditing} sx={{ color: '#34d399' }}>
+                                                            <CheckIcon sx={{ fontSize: 16 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Cancel">
+                                                        <IconButton size="small" onClick={cancelEditing} sx={{ color: '#f87171' }}>
+                                                            <CloseIcon sx={{ fontSize: 16 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            </Box>
+                                        ) : (
+                                            <ListItemButton key={entry.id} selected={selectedEntryId === entry.id}
+                                                onClick={() => navigateToEntry(entry.id)}
+                                                sx={{
+                                                    borderRadius: 1, mb: 0.3, pr: 1, pl: 3, color: '#e0e7ff',
+                                                    '&.Mui-selected': { bgcolor: '#312e81' },
+                                                    '&:hover': { bgcolor: '#312e81' }
+                                                }}>
+                                                <ListItemIcon sx={{ minWidth: 26 }}>
+                                                    <CalendarTodayIcon sx={{ fontSize: 15, color: '#a5b4fc' }} />
+                                                </ListItemIcon>
+                                                <ListItemText
+                                                    primary={formatDateLabel(entry.date)}
+                                                    secondary={entry.releaseOwner}
+                                                    primaryTypographyProps={{ fontSize: 13, fontWeight: 600, color: '#e0e7ff' }}
+                                                    secondaryTypographyProps={{ fontSize: 11, noWrap: true, color: '#a5b4fc' }}
+                                                />
+                                                <Tooltip title="Edit date/owner">
+                                                    <IconButton size="small" edge="end"
+                                                        onClick={(e) => startEditing(entry, e)}
+                                                        sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#818cf8', mr: 0.2 }}>
+                                                        <EditIcon sx={{ fontSize: 14 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <IconButton size="small" edge="end"
+                                                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry); }}
+                                                    aria-label={`Delete ${formatDateLabel(entry.date)}`}
+                                                    sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#c7d2fe' }}>
+                                                    <DeleteIcon sx={{ fontSize: 14 }} />
+                                                </IconButton>
+                                            </ListItemButton>
+                                        )
                                     ))}
                                 </Collapse>
                             </React.Fragment>

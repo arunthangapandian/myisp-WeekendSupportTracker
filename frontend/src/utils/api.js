@@ -35,6 +35,11 @@ const api = {
         fetch(`${BASE}/entries`, { method: 'POST', body: formData })
             .then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; }),
     deleteEntry: (id) => request(`${BASE}/entries/${id}`, { method: 'DELETE' }),
+    updateEntry: (id, data) =>
+        request(`${BASE}/entries/${id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        }),
 
     addTeam: (entryId, data) =>
         request(`${BASE}/entries/${entryId}/teams`, {

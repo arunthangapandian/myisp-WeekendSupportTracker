@@ -32,9 +32,33 @@ const upload = multer({
     },
 });
 
-// ── In-Memory Store ──────────────────────────────────────────
-let entries = {};
-let deletedItems = []; // { id, type:'entry'|'team'|'lineItem', data, deletedAt, parentInfo }
+// ── Persistent Store (JSON file) ─────────────────────────────
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+function loadData() {
+    try {
+        if (fs.existsSync(DATA_FILE)) {
+            const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+            const parsed = JSON.parse(raw);
+            return { entries: parsed.entries || {}, deletedItems: parsed.deletedItems || [] };
+        }
+    } catch (err) {
+        console.error('Failed to load data.json, starting fresh:', err.message);
+    }
+    return { entries: {}, deletedItems: [] };
+}
+
+function saveData() {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems }, null, 2), 'utf-8');
+    } catch (err) {
+        console.error('Failed to save data.json:', err.message);
+    }
+}
+
+const loaded = loadData();
+let entries = loaded.entries;
+let deletedItems = loaded.deletedItems;
 
 // Allowed users whitelist – only these enterprise IDs can sign in
 const allowedUsers = [
@@ -129,7 +153,28 @@ app.post('/api/entries', upload.single('sanityFile'), (req, res) => {
         id, releaseOwner, date, sanityFile: req.file ? req.file.filename : null,
         createdBy: createdBy || 'UNKNOWN', teams: [],
     };
+    saveData();
     res.status(201).json(entries[id]);
+});
+
+// Update entry metadata (releaseOwner, date) — teams/lineItems unchanged
+app.put('/api/entries/:id', (req, res) => {
+    const entry = entries[req.params.id];
+    if (!entry) return res.status(404).json({ error: 'Entry not found' });
+    const { releaseOwner, date } = req.body;
+    if (releaseOwner !== undefined) {
+        if (!releaseOwner.trim()) return res.status(400).json({ error: 'Release Owner cannot be empty' });
+        entry.releaseOwner = releaseOwner.trim();
+    }
+    if (date !== undefined) {
+        if (!date.trim()) return res.status(400).json({ error: 'Date cannot be empty' });
+        // Check for duplicate date (excluding this entry)
+        const dup = Object.values(entries).find(e => e.date === date.trim() && e.id !== entry.id);
+        if (dup) return res.status(409).json({ error: 'Another entry already exists for this date' });
+        entry.date = date.trim();
+    }
+    saveData();
+    res.json(entry);
 });
 
 app.delete('/api/entries/:id', (req, res) => {
@@ -141,6 +186,7 @@ app.delete('/api/entries/:id', (req, res) => {
         deletedAt: new Date().toISOString(), parentInfo: { date: entry.date, releaseOwner: entry.releaseOwner },
     });
     delete entries[req.params.id];
+    saveData();
     res.json({ success: true });
 });
 
@@ -158,6 +204,7 @@ app.post('/api/entries/:id/teams', (req, res) => {
         createdDate: entry.date, createdBy: createdBy || 'UNKNOWN', lineItems: [],
     };
     entry.teams.push(team);
+    saveData();
     res.status(201).json(team);
 });
 
@@ -167,6 +214,7 @@ app.put('/api/entries/:eid/teams/:tid', (req, res) => {
     const idx = entry.teams.findIndex(t => t.id === req.params.tid);
     if (idx === -1) return res.status(404).json({ error: 'Team not found' });
     entry.teams[idx] = { ...entry.teams[idx], ...req.body, id: req.params.tid };
+    saveData();
     res.json(entry.teams[idx]);
 });
 
@@ -182,6 +230,7 @@ app.delete('/api/entries/:eid/teams/:tid', (req, res) => {
         });
     }
     entry.teams = entry.teams.filter(t => t.id !== req.params.tid);
+    saveData();
     res.json({ success: true });
 });
 
@@ -198,6 +247,7 @@ app.post('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
     if (duplicate) return res.status(409).json({ error: `"${name.trim()}" already exists in this team` });
     const item = { id: uuidv4(), name: name.trim(), careerLevel: careerLevel || '', allowanceCompoff: allowanceCompoff || 'Compoff', time: req.body.time || '' };
     team.lineItems.push(item);
+    saveData();
     res.status(201).json(item);
 });
 
@@ -233,6 +283,7 @@ app.post('/api/entries/:eid/teams/:tid/bulk-line-items', (req, res) => {
             added.push(item);
         }
     });
+    saveData();
     res.status(201).json({ added, updated, all: team.lineItems });
 });
 
@@ -244,6 +295,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items/:lid', (req, res) => {
     const idx = team.lineItems.findIndex(li => li.id === req.params.lid);
     if (idx === -1) return res.status(404).json({ error: 'Item not found' });
     team.lineItems[idx] = { ...team.lineItems[idx], ...req.body, id: req.params.lid };
+    saveData();
     res.json(team.lineItems[idx]);
 });
 
@@ -261,6 +313,7 @@ app.delete('/api/entries/:eid/teams/:tid/line-items/:lid', (req, res) => {
         });
     }
     team.lineItems = team.lineItems.filter(li => li.id !== req.params.lid);
+    saveData();
     res.json({ success: true });
 });
 
@@ -275,6 +328,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
         id: li.id || uuidv4(), name: li.name || '', careerLevel: li.careerLevel || '',
         allowanceCompoff: li.allowanceCompoff || 'Compoff', time: li.time || '',
     }));
+    saveData();
     res.json(team.lineItems);
 });
 
@@ -302,6 +356,7 @@ app.post('/api/entries/:id/bulk-teams', (req, res) => {
         entry.teams.push(team);
         added.push(team);
     });
+    saveData();
     res.status(201).json({ added, skipped });
 });
 
@@ -337,6 +392,7 @@ app.post('/api/deleted-items/:id/recover', (req, res) => {
     }
     if (recovered) {
         deletedItems.splice(idx, 1);
+        saveData();
         return res.json({ success: true });
     }
     res.status(400).json({ error: 'Could not recover item' });
@@ -346,11 +402,13 @@ app.delete('/api/deleted-items/:id', (req, res) => {
     const idx = deletedItems.findIndex(d => d.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Deleted item not found' });
     deletedItems.splice(idx, 1);
+    saveData();
     res.json({ success: true });
 });
 
 app.delete('/api/deleted-items', (_req, res) => {
     deletedItems = [];
+    saveData();
     res.json({ success: true });
 });
 
@@ -360,6 +418,7 @@ app.post('/api/entries/:id/sanity-upload', upload.single('sanityFile'), (req, re
     if (!entry) return res.status(404).json({ error: 'Entry not found' });
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     entry.sanityFile = req.file.filename;
+    saveData();
     res.json({ sanityFile: entry.sanityFile });
 });
 
