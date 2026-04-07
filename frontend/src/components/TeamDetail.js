@@ -22,6 +22,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import Autocomplete from '@mui/material/Autocomplete';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -95,6 +96,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [employees, setEmployees] = useState([]);
+    const [careerLevels, setCareerLevels] = useState([]);
     const [lineItems, setLineItems] = useState([]);
     const [savedSnapshot, setSavedSnapshot] = useState([]);
     const [newName, setNewName] = useState('');
@@ -104,11 +106,12 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const [uploadError, setUploadError] = useState('');
     const [saving, setSaving] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
-    const [filters, setFilters] = useState({ name: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
+    const [filters, setFilters] = useState({ name: '', careerLevel: '', supervisor: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
     const fileInputRef = useRef(null);
 
     useEffect(() => {
         api.getEmployees().then(setEmployees).catch(() => { });
+        api.getCareerLevels().then(setCareerLevels).catch(() => { });
     }, []);
 
     const syncFromServer = useCallback(() => {
@@ -153,7 +156,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         const cl = lookupCareerLevel(trimmed);
         setLineItems(prev => [...prev, {
             id: `temp-${Date.now()}`, name: trimmed,
-            careerLevel: cl, allowanceCompoff: 'Compoff', time: '',
+            careerLevel: cl, supervisor: '', allowanceCompoff: 'Compoff', time: '',
         }]);
         setNewName('');
         setError('');
@@ -283,6 +286,8 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     // ── Filtering ──
     const filteredItems = lineItems.filter(li => {
         if (filters.name && !li.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
+        if (filters.careerLevel && !(li.careerLevel || '').toLowerCase().includes(filters.careerLevel.toLowerCase())) return false;
+        if (filters.supervisor && !(li.supervisor || '').toLowerCase().includes(filters.supervisor.toLowerCase())) return false;
         const { start, end } = parseTimeParts(li.time);
         if (filters.loginTime && !(start.toLowerCase().includes(filters.loginTime.toLowerCase()))) return false;
         if (filters.logoutTime && !(end.toLowerCase().includes(filters.logoutTime.toLowerCase()))) return false;
@@ -358,6 +363,8 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Career Level</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Supervisor</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Login Time</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Logout Time</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Total Hours</TableCell>
@@ -371,6 +378,16 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                             <TableCell>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.name} onChange={e => setFilter('name', e.target.value)}
+                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                            </TableCell>
+                                            <TableCell>
+                                                <TextField size="small" variant="standard" placeholder="Filter..."
+                                                    value={filters.careerLevel} onChange={e => setFilter('careerLevel', e.target.value)}
+                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                            </TableCell>
+                                            <TableCell>
+                                                <TextField size="small" variant="standard" placeholder="Filter..."
+                                                    value={filters.supervisor} onChange={e => setFilter('supervisor', e.target.value)}
                                                     InputProps={{ sx: { fontSize: 12 } }} fullWidth />
                                             </TableCell>
                                             <TableCell>
@@ -403,29 +420,54 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                         return (
                                             <TableRow key={li.id}>
                                                 <TableCell>{lineItems.indexOf(li) + 1}</TableCell>
-                                                <TableCell>
+                                                <TableCell sx={{ minWidth: 120 }}>
                                                     {editingId === li.id ? (
                                                         <TextField size="small" value={li.name} variant="standard"
                                                             onChange={e => updateField(li.id, 'name', e.target.value)} />
                                                     ) : li.name}
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Select size="small" value={start} displayEmpty
-                                                        onChange={e => updateField(li.id, 'time', buildTimeStr(e.target.value, end))}
-                                                        sx={{ minWidth: 115, fontSize: 13 }}
-                                                        MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
-                                                        <MenuItem value="" sx={{ fontSize: 12 }}>Select</MenuItem>
-                                                        {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
+                                                <TableCell sx={{ minWidth: 140 }}>
+                                                    <Select size="small" value={li.careerLevel || ''} displayEmpty
+                                                        onChange={e => updateField(li.id, 'careerLevel', e.target.value)}
+                                                        sx={{ minWidth: 130, fontSize: 12 }}>
+                                                        <MenuItem value="" sx={{ fontSize: 12 }}>—</MenuItem>
+                                                        {careerLevels.map(cl => <MenuItem key={cl} value={cl} sx={{ fontSize: 12 }}>{cl}</MenuItem>)}
                                                     </Select>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Select size="small" value={end} displayEmpty
-                                                        onChange={e => updateField(li.id, 'time', buildTimeStr(start, e.target.value))}
-                                                        sx={{ minWidth: 115, fontSize: 13 }}
-                                                        MenuProps={{ PaperProps: { sx: { maxHeight: 250 } } }}>
-                                                        <MenuItem value="" sx={{ fontSize: 12 }}>Select</MenuItem>
-                                                        {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} sx={{ fontSize: 12 }}>{t}</MenuItem>)}
-                                                    </Select>
+                                                <TableCell sx={{ minWidth: 130 }}>
+                                                    <TextField size="small" value={li.supervisor || ''} variant="standard"
+                                                        placeholder="Supervisor"
+                                                        onChange={e => updateField(li.id, 'supervisor', e.target.value)}
+                                                        InputProps={{ sx: { fontSize: 12 } }}
+                                                        sx={{ minWidth: 120 }} />
+                                                </TableCell>
+                                                <TableCell sx={{ minWidth: 140 }}>
+                                                    <Autocomplete
+                                                        freeSolo
+                                                        size="small"
+                                                        options={TIME_OPTIONS}
+                                                        value={start || ''}
+                                                        onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(val || '', end))}
+                                                        renderInput={(params) => (
+                                                            <TextField {...params} size="small" placeholder="Select or type"
+                                                                sx={{ minWidth: 130, '& .MuiInputBase-input': { fontSize: 12 } }} />
+                                                        )}
+                                                        ListboxProps={{ sx: { maxHeight: 220, fontSize: 12 } }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell sx={{ minWidth: 140 }}>
+                                                    <Autocomplete
+                                                        freeSolo
+                                                        size="small"
+                                                        options={TIME_OPTIONS}
+                                                        value={end || ''}
+                                                        onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(start, val || ''))}
+                                                        renderInput={(params) => (
+                                                            <TextField {...params} size="small" placeholder="Select or type"
+                                                                sx={{ minWidth: 130, '& .MuiInputBase-input': { fontSize: 12 } }} />
+                                                        )}
+                                                        ListboxProps={{ sx: { maxHeight: 220, fontSize: 12 } }}
+                                                    />
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600, color: '#a5b4fc', whiteSpace: 'nowrap' }}>
