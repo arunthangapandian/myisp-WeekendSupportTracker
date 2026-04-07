@@ -164,8 +164,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Career Level</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Supervisor</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Team</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Lead</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Hrs</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -174,8 +177,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         <TableRow key={li.id}>
                                             <TableCell>{i + 1}</TableCell>
                                             <TableCell>{li.name}</TableCell>
+                                            <TableCell>{li.careerLevel || '—'}</TableCell>
+                                            <TableCell>{li.supervisor || '—'}</TableCell>
                                             <TableCell>{li.teamName}</TableCell>
                                             <TableCell>{li.leadName}</TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{calcTotalHoursCSV(li.time) || '—'}</TableCell>
                                             <TableCell>
                                                 <Chip label={li.allowanceCompoff} size="small"
                                                     color={li.allowanceCompoff === 'Allowance' ? 'success' : 'warning'} />
@@ -202,8 +208,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Career Level</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Supervisor</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Team</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Lead</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Hrs</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -211,8 +220,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         <TableRow key={li.id}>
                                             <TableCell>{i + 1}</TableCell>
                                             <TableCell>{li.name}</TableCell>
+                                            <TableCell>{li.careerLevel || '—'}</TableCell>
+                                            <TableCell>{li.supervisor || '—'}</TableCell>
                                             <TableCell>{li.teamName}</TableCell>
                                             <TableCell>{li.leadName}</TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{calcTotalHoursCSV(li.time) || '—'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -235,8 +247,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Career Level</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Supervisor</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Team</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Lead</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Hrs</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -244,8 +259,11 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         <TableRow key={li.id}>
                                             <TableCell>{i + 1}</TableCell>
                                             <TableCell>{li.name}</TableCell>
+                                            <TableCell>{li.careerLevel || '—'}</TableCell>
+                                            <TableCell>{li.supervisor || '—'}</TableCell>
                                             <TableCell>{li.teamName}</TableCell>
                                             <TableCell>{li.leadName}</TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{calcTotalHoursCSV(li.time) || '—'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

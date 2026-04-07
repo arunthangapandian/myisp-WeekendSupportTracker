@@ -326,6 +326,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
     if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
     team.lineItems = items.map(li => ({
         id: li.id || uuidv4(), name: li.name || '', careerLevel: li.careerLevel || '',
+        supervisor: li.supervisor || '',
         allowanceCompoff: li.allowanceCompoff || 'Compoff', time: li.time || '',
     }));
     saveData();

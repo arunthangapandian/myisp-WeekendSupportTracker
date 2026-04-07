@@ -13,7 +13,11 @@ const BASE = process.env.NODE_ENV === 'production'
  */
 async function request(url, opts = {}) {
     const res = await fetch(url, opts);
-    const json = await res.json();
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } catch {
+        throw new Error(res.ok ? 'Invalid server response' : `Server error (${res.status})`);
+    }
     if (!res.ok) throw new Error(json.error || 'Request failed');
     return json;
 }
