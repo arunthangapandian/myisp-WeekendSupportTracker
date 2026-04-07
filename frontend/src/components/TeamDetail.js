@@ -17,9 +17,6 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -357,60 +354,60 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         </Tooltip>
                     </Box>
                     {lineItems.length > 0 ? (
-                        <Box sx={{ overflowX: 'auto' }}>
-                            <Table size="small">
+                        <Box>
+                            <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>#</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Name</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Career Level</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Supervisor</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Login Time</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Logout Time</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Total Hours</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Compoff / Allowance</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 12 }}>Actions</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 28 }}>#</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '17%' }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '13%' }}>Career Level</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '12%' }}>Supervisor</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Login</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Logout</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '8%' }}>Hrs</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Type</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 56 }}>Actions</TableCell>
                                     </TableRow>
                                     {/* Filter row — toggled by filter icon */}
                                     {showFilters && (
                                         <TableRow>
-                                            <TableCell />
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }} />
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.name} onChange={e => setFilter('name', e.target.value)}
-                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                                    InputProps={{ sx: { fontSize: 11 } }} fullWidth />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.careerLevel} onChange={e => setFilter('careerLevel', e.target.value)}
-                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                                    InputProps={{ sx: { fontSize: 11 } }} fullWidth />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.supervisor} onChange={e => setFilter('supervisor', e.target.value)}
-                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                                    InputProps={{ sx: { fontSize: 11 } }} fullWidth />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.loginTime} onChange={e => setFilter('loginTime', e.target.value)}
-                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                                    InputProps={{ sx: { fontSize: 11 } }} fullWidth />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <TextField size="small" variant="standard" placeholder="Filter..."
                                                     value={filters.logoutTime} onChange={e => setFilter('logoutTime', e.target.value)}
-                                                    InputProps={{ sx: { fontSize: 12 } }} fullWidth />
+                                                    InputProps={{ sx: { fontSize: 11 } }} fullWidth />
                                             </TableCell>
-                                            <TableCell />
-                                            <TableCell>
+                                            <TableCell sx={{ p: '2px 4px' }} />
+                                            <TableCell sx={{ p: '2px 4px' }}>
                                                 <Select size="small" variant="standard" value={filters.allowanceCompoff}
                                                     onChange={e => setFilter('allowanceCompoff', e.target.value)}
-                                                    displayEmpty sx={{ fontSize: 12, minWidth: 80 }}>
-                                                    <MenuItem value="" sx={{ fontSize: 12 }}>All</MenuItem>
-                                                    <MenuItem value="Compoff" sx={{ fontSize: 12 }}>Compoff</MenuItem>
-                                                    <MenuItem value="Allowance" sx={{ fontSize: 12 }}>Allowance</MenuItem>
+                                                    displayEmpty sx={{ fontSize: 11, width: '100%' }}>
+                                                    <MenuItem value="" sx={{ fontSize: 11 }}>All</MenuItem>
+                                                    <MenuItem value="Compoff" sx={{ fontSize: 11 }}>Compoff</MenuItem>
+                                                    <MenuItem value="Allowance" sx={{ fontSize: 11 }}>Allowance</MenuItem>
                                                 </Select>
                                             </TableCell>
-                                            <TableCell />
+                                            <TableCell sx={{ p: '2px 4px' }} />
                                         </TableRow>
                                     )}
                                 </TableHead>
@@ -419,80 +416,79 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                         const { start, end } = parseTimeParts(li.time);
                                         return (
                                             <TableRow key={li.id}>
-                                                <TableCell>{lineItems.indexOf(li) + 1}</TableCell>
-                                                <TableCell sx={{ minWidth: 120 }}>
+                                                <TableCell sx={{ p: '4px 6px', fontSize: 11 }}>{lineItems.indexOf(li) + 1}</TableCell>
+                                                <TableCell sx={{ p: '4px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {editingId === li.id ? (
                                                         <TextField size="small" value={li.name} variant="standard"
-                                                            onChange={e => updateField(li.id, 'name', e.target.value)} />
-                                                    ) : li.name}
+                                                            onChange={e => updateField(li.id, 'name', e.target.value)}
+                                                            InputProps={{ sx: { fontSize: 11 } }} fullWidth />
+                                                    ) : <Typography sx={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{li.name}</Typography>}
                                                 </TableCell>
-                                                <TableCell sx={{ minWidth: 140 }}>
+                                                <TableCell sx={{ p: '4px 4px' }}>
                                                     <Select size="small" value={li.careerLevel || ''} displayEmpty
                                                         onChange={e => updateField(li.id, 'careerLevel', e.target.value)}
-                                                        sx={{ minWidth: 130, fontSize: 12 }}>
-                                                        <MenuItem value="" sx={{ fontSize: 12 }}>—</MenuItem>
-                                                        {careerLevels.map(cl => <MenuItem key={cl} value={cl} sx={{ fontSize: 12 }}>{cl}</MenuItem>)}
+                                                        sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
+                                                        <MenuItem value="" sx={{ fontSize: 11 }}>—</MenuItem>
+                                                        {careerLevels.map(cl => <MenuItem key={cl} value={cl} sx={{ fontSize: 11 }}>{cl}</MenuItem>)}
                                                     </Select>
                                                 </TableCell>
-                                                <TableCell sx={{ minWidth: 130 }}>
-                                                    <TextField size="small" value={li.supervisor || ''} variant="standard"
+                                                <TableCell sx={{ p: '4px 4px' }}>
+                                                    <TextField size="small" value={li.supervisor || ''} variant="outlined"
                                                         placeholder="Supervisor"
                                                         onChange={e => updateField(li.id, 'supervisor', e.target.value)}
-                                                        InputProps={{ sx: { fontSize: 12 } }}
-                                                        sx={{ minWidth: 120 }} />
+                                                        InputProps={{ sx: { fontSize: 11, py: 0 } }}
+                                                        inputProps={{ style: { padding: '4px 6px', fontSize: 11 } }}
+                                                        sx={{ width: '100%' }} />
                                                 </TableCell>
-                                                <TableCell sx={{ minWidth: 140 }}>
+                                                <TableCell sx={{ p: '4px 4px' }}>
                                                     <Autocomplete
-                                                        freeSolo
-                                                        size="small"
-                                                        options={TIME_OPTIONS}
+                                                        freeSolo size="small" options={TIME_OPTIONS}
                                                         value={start || ''}
                                                         onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(val || '', end))}
                                                         renderInput={(params) => (
-                                                            <TextField {...params} size="small" placeholder="Select or type"
-                                                                sx={{ minWidth: 130, '& .MuiInputBase-input': { fontSize: 12 } }} />
+                                                            <TextField {...params} size="small"
+                                                                inputProps={{ ...params.inputProps, style: { padding: '4px 6px', fontSize: 11 } }} />
                                                         )}
-                                                        ListboxProps={{ sx: { maxHeight: 220, fontSize: 12 } }}
+                                                        ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
+                                                        sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ minWidth: 140 }}>
+                                                <TableCell sx={{ p: '4px 4px' }}>
                                                     <Autocomplete
-                                                        freeSolo
-                                                        size="small"
-                                                        options={TIME_OPTIONS}
+                                                        freeSolo size="small" options={TIME_OPTIONS}
                                                         value={end || ''}
                                                         onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(start, val || ''))}
                                                         renderInput={(params) => (
-                                                            <TextField {...params} size="small" placeholder="Select or type"
-                                                                sx={{ minWidth: 130, '& .MuiInputBase-input': { fontSize: 12 } }} />
+                                                            <TextField {...params} size="small"
+                                                                inputProps={{ ...params.inputProps, style: { padding: '4px 6px', fontSize: 11 } }} />
                                                         )}
-                                                        ListboxProps={{ sx: { maxHeight: 220, fontSize: 12 } }}
+                                                        ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
+                                                        sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600, color: '#a5b4fc', whiteSpace: 'nowrap' }}>
+                                                <TableCell sx={{ p: '4px 6px' }}>
+                                                    <Typography variant="body2" sx={{ fontSize: 11, fontWeight: 600, color: '#a5b4fc', whiteSpace: 'nowrap' }}>
                                                         {calcTotalHours(li.time) || '—'}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <RadioGroup row value={li.allowanceCompoff}
-                                                        onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}>
-                                                        <FormControlLabel value="Compoff" control={<Radio size="small" />} label="Compoff"
-                                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }} />
-                                                        <FormControlLabel value="Allowance" control={<Radio size="small" />} label="Allowance"
-                                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }} />
-                                                    </RadioGroup>
+                                                <TableCell sx={{ p: '4px 4px' }}>
+                                                    <Select size="small" value={li.allowanceCompoff || 'Compoff'}
+                                                        onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}
+                                                        sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
+                                                        <MenuItem value="Compoff" sx={{ fontSize: 11 }}>Compoff</MenuItem>
+                                                        <MenuItem value="Allowance" sx={{ fontSize: 11 }}>Allowance</MenuItem>
+                                                    </Select>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                <TableCell sx={{ p: '4px 2px' }}>
+                                                    <Box sx={{ display: 'flex', gap: 0 }}>
                                                         <IconButton size="small"
                                                             onClick={() => setEditingId(editingId === li.id ? null : li.id)}
                                                             title={editingId === li.id ? 'Done' : 'Edit'}>
-                                                            {editingId === li.id ? <CheckIcon fontSize="small" color="success" /> : <EditIcon fontSize="small" />}
+                                                            {editingId === li.id ? <CheckIcon sx={{ fontSize: 15 }} color="success" /> : <EditIcon sx={{ fontSize: 15 }} />}
                                                         </IconButton>
                                                         <IconButton size="small" onClick={() => setDeleteTarget(li)}
                                                             aria-label={`Delete ${li.name}`}>
-                                                            <DeleteIcon fontSize="small" />
+                                                            <DeleteIcon sx={{ fontSize: 15 }} />
                                                         </IconButton>
                                                     </Box>
                                                 </TableCell>
