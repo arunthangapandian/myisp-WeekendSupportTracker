@@ -73,6 +73,7 @@ const api = {
             body: JSON.stringify({ items }),
         }),
 
+    getEntryHistory: (entryId) => request(`${BASE}/entries/${entryId}/history`),
     getExportUrl: (entryId) => `${BASE}/entries/${entryId}/export`,
     getTeamExportUrl: (entryId, teamId) => `${BASE}/entries/${entryId}/teams/${teamId}/export`,
 

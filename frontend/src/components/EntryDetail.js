@@ -70,7 +70,7 @@ export default function EntryDetail({ onRefresh }) {
                         variant={showHistory ? 'contained' : 'outlined'}
                         size="small"
                         startIcon={<HistoryIcon />}
-                        onClick={() => setShowHistory(prev => !prev)}
+                        onClick={() => setShowHistory(true)}
                         sx={{
                             textTransform: 'none', fontWeight: 600, fontSize: 13,
                             color: showHistory ? '#fff' : '#fbbf24',

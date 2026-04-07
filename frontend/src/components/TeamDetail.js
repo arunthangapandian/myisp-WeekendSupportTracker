@@ -358,15 +358,15 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                             <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 28 }}>#</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '17%' }}>Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 26 }}>#</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '16%' }}>Name</TableCell>
                                         <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '13%' }}>Career Level</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '12%' }}>Supervisor</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Login</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Logout</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '8%' }}>Hrs</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Type</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 56 }}>Actions</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '11%' }}>Supervisor</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '13%' }}>Login</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '13%' }}>Logout</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '7%' }}>Hrs</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: '10%' }}>Type</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: 11, p: '4px 6px', width: 52 }}>Actions</TableCell>
                                     </TableRow>
                                     {/* Filter row — toggled by filter icon */}
                                     {showFilters && (
@@ -440,29 +440,33 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         inputProps={{ style: { padding: '4px 6px', fontSize: 11 } }}
                                                         sx={{ width: '100%' }} />
                                                 </TableCell>
-                                                <TableCell sx={{ p: '4px 4px' }}>
+                                                <TableCell sx={{ p: '4px 2px' }}>
                                                     <Autocomplete
                                                         freeSolo size="small" options={TIME_OPTIONS}
                                                         value={start || ''}
                                                         onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(val || '', end))}
                                                         renderInput={(params) => (
-                                                            <TextField {...params} size="small"
-                                                                inputProps={{ ...params.inputProps, style: { padding: '4px 6px', fontSize: 11 } }} />
+                                                            <TextField {...params} size="small" placeholder="HH:MM AM"
+                                                                inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
+                                                                InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
                                                         ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
+                                                        disableClearable
                                                         sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>
-                                                <TableCell sx={{ p: '4px 4px' }}>
+                                                <TableCell sx={{ p: '4px 2px' }}>
                                                     <Autocomplete
                                                         freeSolo size="small" options={TIME_OPTIONS}
                                                         value={end || ''}
                                                         onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(start, val || ''))}
                                                         renderInput={(params) => (
-                                                            <TextField {...params} size="small"
-                                                                inputProps={{ ...params.inputProps, style: { padding: '4px 6px', fontSize: 11 } }} />
+                                                            <TextField {...params} size="small" placeholder="HH:MM AM"
+                                                                inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
+                                                                InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
                                                         ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
+                                                        disableClearable
                                                         sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>

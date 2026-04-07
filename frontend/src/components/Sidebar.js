@@ -114,7 +114,8 @@ export default function Sidebar() {
         if (!editOwner.trim()) { addToast('Release Owner cannot be empty', 'error'); return; }
         if (!editDate) { addToast('Date cannot be empty', 'error'); return; }
         try {
-            await api.updateEntry(editingEntryId, { releaseOwner: editOwner.trim(), date: editDate });
+            const empId = localStorage.getItem('empId') || 'UNKNOWN';
+            await api.updateEntry(editingEntryId, { releaseOwner: editOwner.trim(), date: editDate, changedBy: empId });
             const list = await api.getEntries();
             setEntries(list);
             addToast('Entry updated successfully', 'success');
