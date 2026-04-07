@@ -8,30 +8,38 @@ import HomeIcon from '@mui/icons-material/Home';
 import { formatDateLabel } from '../utils/helpers';
 
 /**
- * Breadcrumb: Home > Date > Team Name
+ * Breadcrumb: Home > Date > Team Name  (or)  Home > Date > History
  */
-export default function Breadcrumb() {
+export default function Breadcrumb({ showHistory, onBackFromHistory }) {
     const { currentEntry, selectedTeamId, navigateHome, navigateToEntry } = useAppContext();
     if (!currentEntry) return null;
 
-    const team = selectedTeamId
+    const team = (!showHistory && selectedTeamId)
         ? (currentEntry.teams || []).find(t => t.id === selectedTeamId)
         : null;
 
     return (
-        <Breadcrumbs sx={{ mb: 2, fontSize: 13 }} aria-label="breadcrumb">
+        <Breadcrumbs sx={{ fontSize: 13 }} aria-label="breadcrumb">
             <Link underline="hover" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: '#a5b4fc' }}
                 onClick={navigateHome}>
                 <HomeIcon sx={{ fontSize: 16 }} /> Home
             </Link>
-            {team ? (
+            {(team || showHistory) ? (
                 <Link underline="hover" sx={{ cursor: 'pointer', color: '#a5b4fc' }}
-                    onClick={() => navigateToEntry(currentEntry.id)}>
+                    onClick={() => {
+                        if (showHistory && onBackFromHistory) onBackFromHistory();
+                        else navigateToEntry(currentEntry.id);
+                    }}>
                     {formatDateLabel(currentEntry.date)}
                 </Link>
             ) : (
                 <Typography sx={{ color: '#e0e7ff' }} fontSize={13} fontWeight={600}>
                     {formatDateLabel(currentEntry.date)}
+                </Typography>
+            )}
+            {showHistory && (
+                <Typography sx={{ color: '#fbbf24' }} fontSize={13} fontWeight={600}>
+                    📜 History
                 </Typography>
             )}
             {team && (

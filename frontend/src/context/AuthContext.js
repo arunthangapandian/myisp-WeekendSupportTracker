@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
     }, [empId]);
 
     const login = (id) => setEmpId(id.trim());
-    const logout = () => { setEmpId(''); localStorage.removeItem('empId'); };
+    const logout = () => { setEmpId(''); localStorage.removeItem('empId'); sessionStorage.clear(); };
 
     return (
         <AuthContext.Provider value={{ empId, isLoggedIn: !!empId, login, logout }}>

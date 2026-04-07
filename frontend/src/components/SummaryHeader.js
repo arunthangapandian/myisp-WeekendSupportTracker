@@ -18,7 +18,6 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
-import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PeopleIcon from '@mui/icons-material/People';
@@ -28,9 +27,6 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DescriptionIcon from '@mui/icons-material/Description';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * Summary cards at top of date details screen.
@@ -69,8 +65,6 @@ export default function SummaryHeader({ entry, onRefresh }) {
     const fileInputRef = useRef(null);
     const reuploadInputRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(null);
-    const [editingOwner, setEditingOwner] = useState(false);
-    const [ownerDraft, setOwnerDraft] = useState('');
 
     if (!entry) return null;
 
@@ -94,20 +88,6 @@ export default function SummaryHeader({ entry, onRefresh }) {
             addToast(err.message || 'Upload failed', 'error');
         }
         e.target.value = '';
-    };
-
-    const handleSaveOwner = async () => {
-        const trimmed = ownerDraft.trim();
-        if (!trimmed) { addToast('Release Owner cannot be empty', 'error'); return; }
-        if (trimmed === entry.releaseOwner) { setEditingOwner(false); return; }
-        try {
-            await api.updateEntry(entry.id, { releaseOwner: trimmed });
-            addToast('Release Owner updated', 'success');
-            setEditingOwner(false);
-            if (onRefresh) onRefresh();
-        } catch (err) {
-            addToast(err.message || 'Update failed', 'error');
-        }
     };
 
     /** Export dialog data as CSV */
@@ -282,22 +262,8 @@ export default function SummaryHeader({ entry, onRefresh }) {
         <Box sx={{ mb: 3 }}>
             {/* Release Owner + Created By meta + Sanity Sheet */}
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
-                {editingOwner ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <TextField size="small" value={ownerDraft}
-                            onChange={e => setOwnerDraft(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleSaveOwner(); if (e.key === 'Escape') setEditingOwner(false); }}
-                            autoFocus
-                            sx={{ width: 200, '& .MuiInputBase-input': { fontSize: 13, py: 0.5 } }} />
-                        <IconButton size="small" onClick={handleSaveOwner} sx={{ color: '#34d399' }}><CheckIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => setEditingOwner(false)} sx={{ color: '#f87171' }}><CloseIcon fontSize="small" /></IconButton>
-                    </Box>
-                ) : (
-                    <Chip label={`Release Owner: ${entry.releaseOwner}`} size="small"
-                        sx={{ bgcolor: '#312e81', color: '#e0e7ff', cursor: 'pointer' }}
-                        onDelete={() => { setOwnerDraft(entry.releaseOwner); setEditingOwner(true); }}
-                        deleteIcon={<Tooltip title="Edit Release Owner"><EditIcon sx={{ fontSize: 14, color: '#a5b4fc !important' }} /></Tooltip>} />
-                )}
+                <Chip label={`Release Owner: ${entry.releaseOwner}`} size="small"
+                    sx={{ bgcolor: '#312e81', color: '#e0e7ff' }} />
                 <Chip label={`Created By: ${entry.createdBy}`} size="small" sx={{ bgcolor: '#312e81', color: '#e0e7ff' }} />
                 {entry.sanityFile ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
