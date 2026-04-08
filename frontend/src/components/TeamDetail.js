@@ -89,10 +89,9 @@ function calcTotalHours(timeStr) {
  * Career Level column removed per user request.
  */
 export default function TeamDetail({ entryId, teamId, onRefresh }) {
-    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback } = useAppContext();
+    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback, employees } = useAppContext();
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
-    const [employees, setEmployees] = useState([]);
     const [lineItems, setLineItems] = useState([]);
     const [savedSnapshot, setSavedSnapshot] = useState([]);
     const [newName, setNewName] = useState('');
@@ -104,10 +103,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({ name: '', careerLevel: '', supervisor: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
     const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        api.getEmployees().then(setEmployees).catch(() => { });
-    }, []);
 
     const syncFromServer = useCallback(() => {
         if (team) {
@@ -129,10 +124,10 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     if (!team) return <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>Team not found</Typography>;
 
-    /** Only employees with career level exactly 9 (numeric) */
+    /** Only employees with career level 10 and above (numeric) */
     const eligibleEmployees = employees.filter(e => {
         const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl === 9;
+        return !isNaN(cl) && cl >= 10;
     });
 
     /** Lookup career level from employee directory by name or ID */
@@ -243,6 +238,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
                 const newItems = [];
                 const overwritten = [];
+                const skippedLowLevel = [];
                 rows.forEach((row, idx) => {
                     const nameKey = Object.keys(row).find(k => k.toLowerCase().includes('name'));
                     const name = String(row[nameKey] || '').trim();
@@ -250,9 +246,14 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     const clKey = Object.keys(row).find(k =>
                         k.toLowerCase().includes('career') || k.toLowerCase().includes('level'));
                     let cl = clKey ? String(row[clKey] || '').trim() : '';
-                    // Auto-lookup from resource list if not in Excel
+                    // Auto-lookup from resource list (10+ only)
                     const empRecord = lookupEmployee(name);
                     if (!cl && empRecord) cl = empRecord.careerLevel || '';
+                    // Skip employees with career level 9 and below
+                    const clNum = parseInt(String(cl || '').replace(/[^0-9]/g, ''), 10);
+                    if (!isNaN(clNum) && clNum <= 9) { skippedLowLevel.push(name); return; }
+                    // Also skip if not found at all in eligible (10+) resource list
+                    if (employees.length > 0 && !empRecord) { skippedLowLevel.push(name); return; }
                     const svKey = Object.keys(row).find(k => k.toLowerCase().includes('supervisor'));
                     let sv = svKey ? String(row[svKey] || '').trim() : '';
                     if (!sv && empRecord) sv = empRecord.supervisor || '';
@@ -302,7 +303,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     }
                 });
 
-                if (newItems.length === 0 && overwritten.length === 0) { setUploadError('No valid rows found'); return; }
+                if (newItems.length === 0 && overwritten.length === 0) { setUploadError('No valid rows found. Ensure employees have career level 10 or above.'); return; }
                 setLineItems(() => {
                     const updated = [...lineItems];
                     return [...updated.filter(li => !newItems.some(ni => ni.id === li.id)), ...newItems];
@@ -310,6 +311,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                 const msgs = [];
                 if (newItems.length > 0) msgs.push(`${newItems.length} added`);
                 if (overwritten.length > 0) msgs.push(`${overwritten.length} overwritten`);
+                if (skippedLowLevel.length > 0) msgs.push(`${skippedLowLevel.length} skipped (career level < 10)`);
                 addToast(`Excel import: ${msgs.join(', ')}`, 'success');
             } catch {
                 setUploadError('Failed to parse Excel file');

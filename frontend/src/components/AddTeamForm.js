@@ -22,21 +22,24 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
  */
 export default function AddTeamForm({ entryId, onTeamAdded }) {
     const { empId } = useAuth();
-    const { addToast } = useAppContext();
+    const { addToast, employees } = useAppContext();
     const fileInputRef = useRef(null);
 
     const [teamName, setTeamName] = useState('');
     const [leadName, setLeadName] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [employees, setEmployees] = useState([]);
 
-    useEffect(() => { api.getEmployees().then(setEmployees).catch(() => {}); }, []);
+    // Lead Name: career level 9 and below only
+    const leadOptions = employees.filter(e => {
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && cl <= 9;
+    });
 
     const getLeadSuggestions = (input) => {
         if (!input || input.length < 2) return [];
         const q = input.toLowerCase();
-        return employees
+        return leadOptions
             .filter(e => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q))
             .slice(0, 10);
     };
@@ -45,9 +48,9 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
         e.preventDefault();
         if (!teamName.trim()) { setError('Team Name is required'); return; }
         if (!leadName.trim()) { setError('Lead Name is required'); return; }
-        // Validate lead name against resource list
-        if (employees.length > 0) {
-            const valid = employees.some(emp =>
+        // Validate lead name against resource list (9 and below)
+        if (leadOptions.length > 0) {
+            const valid = leadOptions.some(emp =>
                 emp.name.toLowerCase() === leadName.trim().toLowerCase() ||
                 emp.id.toLowerCase() === leadName.trim().toLowerCase()
             );

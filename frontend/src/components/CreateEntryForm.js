@@ -22,9 +22,8 @@ import CloseIcon from '@mui/icons-material/Close';
  */
 export default function CreateEntryForm() {
     const { empId } = useAuth();
-    const { addToast, setLoading, navigateToEntry, setEntries, navigateHome } = useAppContext();
+    const { addToast, setLoading, navigateToEntry, setEntries, navigateHome, employees } = useAppContext();
 
-    const [employees, setEmployees] = useState([]);
     const [releaseOwner, setReleaseOwner] = useState('');
     const [date, setDate] = useState('');
     const [file, setFile] = useState(null);
@@ -32,10 +31,6 @@ export default function CreateEntryForm() {
     const [submitting, setSubmitting] = useState(false);
 
     const today = getTodayStr();
-
-    useEffect(() => {
-        api.getEmployees().then(list => setEmployees(list || [])).catch(() => { });
-    }, []);
 
     // Release owners: career level 9 and below
     const releaseOwnerOptions = employees.filter(e => {

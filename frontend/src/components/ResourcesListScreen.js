@@ -32,7 +32,7 @@ import PeopleIcon from '@mui/icons-material/People';
  * Employee list is permanent in DB — persists until another user uploads a new file.
  */
 export default function ResourcesListScreen() {
-    const { navigateHome, navigateToEntry, currentEntry, addToast } = useAppContext();
+    const { navigateHome, navigateToEntry, currentEntry, addToast, loadEmployees } = useAppContext();
     const { empId } = useAuth();
     const [uploads, setUploads] = useState([]);
     const [employeeCount, setEmployeeCount] = useState(0);
@@ -78,6 +78,7 @@ export default function ResourcesListScreen() {
                 if (list.length === 0) { addToast('No valid employee rows found', 'error'); return; }
                 await api.uploadEmployeeList(list, empId, originalName);
                 addToast(`Resource list uploaded: ${list.length} employees`, 'success');
+                loadEmployees(); // refresh global context employees immediately
                 loadData();
             } catch (err) {
                 addToast(err.message || 'Upload failed', 'error');

@@ -32,6 +32,7 @@ function AppContent() {
         setEntries, selectedEntryId, setCurrentEntry,
         view, loading, setLoading,
         pendingNav, confirmPendingNav, cancelPendingNav, saveAndContinuePendingNav,
+        loadEmployees,
     } = useAppContext();
 
     const loadEntries = useCallback(async () => {
@@ -39,7 +40,14 @@ function AppContent() {
         catch { /* ignore */ }
     }, [setEntries]);
 
-    useEffect(() => { if (isLoggedIn) loadEntries(); }, [isLoggedIn, loadEntries]);
+    useEffect(() => { if (isLoggedIn) { loadEntries(); loadEmployees(); } }, [isLoggedIn, loadEntries, loadEmployees]);
+
+    // Poll every 30s to sync multi-user changes (entries list + employees)
+    useEffect(() => {
+        if (!isLoggedIn) return;
+        const id = setInterval(() => { loadEntries(); loadEmployees(); }, 30000);
+        return () => clearInterval(id);
+    }, [isLoggedIn, loadEntries, loadEmployees]);
 
     const loadEntry = useCallback(async () => {
         if (!selectedEntryId) { setCurrentEntry(null); return; }
@@ -50,6 +58,13 @@ function AppContent() {
     }, [selectedEntryId, setCurrentEntry, setLoading]);
 
     useEffect(() => { loadEntry(); }, [loadEntry]);
+
+    // Poll current entry every 20s to catch changes by other users
+    useEffect(() => {
+        if (!selectedEntryId) return;
+        const id = setInterval(() => { loadEntry(); }, 20000);
+        return () => clearInterval(id);
+    }, [selectedEntryId, loadEntry]);
 
     const refresh = () => { loadEntry(); loadEntries(); };
 
