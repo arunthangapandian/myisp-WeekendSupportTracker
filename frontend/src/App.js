@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import CreateEntryForm from './components/CreateEntryForm';
 import EntryDetail from './components/EntryDetail';
 import DeletedItems from './components/DeletedItems';
+import ResourcesListScreen from './components/ResourcesListScreen';
 import Toast from './components/Toast';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -58,6 +59,8 @@ function AppContent() {
                         <CreateEntryForm />
                     ) : view === 'deleted' ? (
                         <DeletedItems onRefresh={refresh} />
+                    ) : view === 'resources' ? (
+                        <ResourcesListScreen />
                     ) : (
                         <EntryDetail onRefresh={refresh} />
                     )}

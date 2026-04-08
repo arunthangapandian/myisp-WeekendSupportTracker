@@ -64,6 +64,11 @@ export function AppProvider({ children }) {
         setView('deleted');
     };
 
+    const navigateToResources = () => {
+        setSelectedTeamId(null);
+        setView('resources');
+    };
+
     return (
         <AppContext.Provider value={{
             entries, setEntries,
@@ -74,7 +79,7 @@ export function AppProvider({ children }) {
             view, setView,
             loading, setLoading,
             toasts, addToast, dismissToast,
-            navigateToEntry, navigateToTeam, navigateHome, navigateToDeleted,
+            navigateToEntry, navigateToTeam, navigateHome, navigateToDeleted, navigateToResources,
         }}>
             {children}
         </AppContext.Provider>

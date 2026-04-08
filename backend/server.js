@@ -55,6 +55,7 @@ function loadDataFromFile() {
                 deletedItems: parsed.deletedItems || [],
                 employees: parsed.employees || null,
                 changelogs: parsed.changelogs || {},
+                resourceUploadHistory: parsed.resourceUploadHistory || [],
             };
         }
     } catch (err) {
@@ -66,8 +67,8 @@ function loadDataFromFile() {
 async function loadDataFromDB() {
     if (!pool) return null;
     try {
-        const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs')");
-        const data = { entries: {}, deletedItems: [], employees: null, changelogs: {} };
+        const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs','resourceUploadHistory')");
+        const data = { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
         res.rows.forEach(row => { data[row.key] = row.value; });
         console.log(`Loaded ${Object.keys(data.entries).length} entries from PostgreSQL`);
         return data;
@@ -80,7 +81,7 @@ async function loadDataFromDB() {
 function saveData() {
     // File fallback (for local dev)
     try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems, employees, changelogs }, null, 2), 'utf-8');
+        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems, employees, changelogs, resourceUploadHistory }, null, 2), 'utf-8');
     } catch (err) {
         console.error('Failed to save data.json:', err.message);
     }
@@ -95,6 +96,7 @@ function saveData() {
         upsert('deletedItems', deletedItems);
         upsert('employees', employees);
         upsert('changelogs', changelogs);
+        upsert('resourceUploadHistory', resourceUploadHistory);
     }
 }
 
@@ -102,6 +104,7 @@ let entries = {};
 let deletedItems = [];
 let changelogs = {};
 let employees = [];
+let resourceUploadHistory = [];
 
 // Allowed users whitelist – only these enterprise IDs can sign in
 const allowedUsers = [
@@ -172,12 +175,35 @@ app.get('/api/options/employee-lookup', (req, res) => {
 });
 app.get('/api/options/employees', (_r, res) => res.json(employees));
 
+// Get resource upload history
+app.get('/api/options/resource-upload-history', (_r, res) => {
+    res.json([...resourceUploadHistory].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)));
+});
+
 // Replace employee directory from uploaded resource list (parsed on frontend)
 app.post('/api/options/employees', (req, res) => {
-    const list = req.body;
+    const body = req.body;
+    // Accept both array (legacy) and { employees, uploadedBy, filename }
+    let list, uploadedBy, filename;
+    if (Array.isArray(body)) {
+        list = body;
+        uploadedBy = 'UNKNOWN';
+        filename = 'unknown';
+    } else {
+        list = body.employees;
+        uploadedBy = body.uploadedBy || 'UNKNOWN';
+        filename = body.filename || 'unknown';
+    }
     if (!Array.isArray(list) || list.length === 0)
         return res.status(400).json({ error: 'Array of employees required' });
     employees = list;
+    resourceUploadHistory.push({
+        id: uuidv4(),
+        uploadedBy,
+        filename,
+        uploadedAt: new Date().toISOString(),
+        count: list.length,
+    });
     saveData();
     res.json({ success: true, count: list.length });
 });
@@ -604,6 +630,7 @@ async function startServer() {
     deletedItems = data.deletedItems || [];
     changelogs = data.changelogs || {};
     employees = data.employees || [];
+    resourceUploadHistory = data.resourceUploadHistory || [];
 
     if (!employees || employees.length === 0) {
         employees = [...employeeDirectory];

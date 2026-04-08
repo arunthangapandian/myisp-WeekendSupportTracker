@@ -79,11 +79,13 @@ const api = {
 
     getEntryHistory: (entryId) => request(`${BASE}/entries/${entryId}/history`),
 
-    uploadEmployeeList: (employees) =>
+    uploadEmployeeList: (employees, uploadedBy, filename) =>
         request(`${BASE}/options/employees`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(employees),
+            body: JSON.stringify({ employees, uploadedBy: uploadedBy || 'UNKNOWN', filename: filename || 'unknown' }),
         }),
+
+    getResourceUploadHistory: () => request(`${BASE}/options/resource-upload-history`),
 
     getExportUrl: (entryId) => `${BASE}/entries/${entryId}/export`,
     getTeamExportUrl: (entryId, teamId) => `${BASE}/entries/${entryId}/teams/${teamId}/export`,

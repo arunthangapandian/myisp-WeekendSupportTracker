@@ -93,7 +93,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [employees, setEmployees] = useState([]);
-    const [careerLevels, setCareerLevels] = useState([]);
     const [lineItems, setLineItems] = useState([]);
     const [savedSnapshot, setSavedSnapshot] = useState([]);
     const [newName, setNewName] = useState('');
@@ -108,7 +107,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     useEffect(() => {
         api.getEmployees().then(setEmployees).catch(() => { });
-        api.getCareerLevels().then(setCareerLevels).catch(() => { });
     }, []);
 
     const syncFromServer = useCallback(() => {
@@ -229,7 +227,12 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     const clKey = Object.keys(row).find(k =>
                         k.toLowerCase().includes('career') || k.toLowerCase().includes('level'));
                     let cl = clKey ? String(row[clKey] || '').trim() : '';
-                    if (!cl) cl = lookupCareerLevel(name);
+                    // Auto-lookup from resource list if not in Excel
+                    const empRecord = lookupEmployee(name);
+                    if (!cl && empRecord) cl = empRecord.careerLevel || '';
+                    const svKey = Object.keys(row).find(k => k.toLowerCase().includes('supervisor'));
+                    let sv = svKey ? String(row[svKey] || '').trim() : '';
+                    if (!sv && empRecord) sv = empRecord.supervisor || '';
                     const acKey = Object.keys(row).find(k =>
                         k.toLowerCase().includes('allowance') || k.toLowerCase().includes('compoff'));
                     let ac = 'Compoff';
@@ -266,12 +269,13 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         lineItems[existingIdx] = {
                             ...lineItems[existingIdx], name,
                             careerLevel: cl || lineItems[existingIdx].careerLevel,
+                            supervisor: sv || lineItems[existingIdx].supervisor || '',
                             allowanceCompoff: ac,
                             time: time || lineItems[existingIdx].time || '',
                         };
                         overwritten.push(name);
                     } else {
-                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, careerLevel: cl, allowanceCompoff: ac, time: time || '' });
+                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, careerLevel: cl, supervisor: sv, allowanceCompoff: ac, time: time || '' });
                     }
                 });
 
@@ -466,12 +470,13 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                     ) : <Typography sx={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{li.name}</Typography>}
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 4px' }}>
-                                                    <Select size="small" value={li.careerLevel || ''} displayEmpty
-                                                        onChange={e => updateField(li.id, 'careerLevel', e.target.value)}
-                                                        sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
-                                                        <MenuItem value="" sx={{ fontSize: 11 }}>—</MenuItem>
-                                                        {careerLevels.map(cl => <MenuItem key={cl} value={cl} sx={{ fontSize: 11 }}>{cl}</MenuItem>)}
-                                                    </Select>
+                                                    <Typography sx={{
+                                                        fontSize: 12, fontWeight: 600,
+                                                        color: '#c7d2fe', px: '6px', py: '4px',
+                                                        textAlign: 'center',
+                                                    }}>
+                                                        {li.careerLevel || '—'}
+                                                    </Typography>
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 4px' }}>
                                                     <TextField size="small" value={li.supervisor || ''} variant="outlined"

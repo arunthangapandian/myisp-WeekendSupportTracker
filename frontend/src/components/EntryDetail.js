@@ -14,6 +14,7 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import AddIcon from '@mui/icons-material/Add';
 import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 
 /**
  * Orchestrator for a single date entry.
@@ -21,7 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
  * @param {{ onRefresh: Function }} props
  */
 export default function EntryDetail({ onRefresh }) {
-    const { currentEntry, selectedTeamId, view, setView } = useAppContext();
+    const { currentEntry, selectedTeamId, view, setView, navigateToResources } = useAppContext();
     const [showHistory, setShowHistory] = useState(false);
 
     // Reset history view when switching entries
@@ -30,17 +31,34 @@ export default function EntryDetail({ onRefresh }) {
     // No entry selected — show welcome
     if (!currentEntry) {
         return (
-            <Box sx={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', height: '55vh', textAlign: 'center', color: '#a5b4fc'
-            }}>
-                <ComputerIcon sx={{ fontSize: 56, mb: 1, opacity: 0.4 }} />
-                <Typography variant="h6" sx={{ color: '#c7d2fe' }}>Welcome to Weekend Support Tracker</Typography>
-                <Typography variant="body2" sx={{ mb: 2, color: '#a5b4fc' }}>Select an entry from the sidebar, or create a new one.</Typography>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => setView('create')}
-                    sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
-                    Create New Release
-                </Button>
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ListAltIcon />}
+                        onClick={navigateToResources}
+                        sx={{
+                            textTransform: 'none', fontWeight: 600, fontSize: 13,
+                            color: '#c084fc', borderColor: '#7c3aed', borderRadius: 1.5, px: 1.5,
+                            '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
+                        }}
+                    >
+                        Resources List
+                    </Button>
+                </Box>
+                <Box sx={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    justifyContent: 'center', height: '50vh', textAlign: 'center', color: '#a5b4fc'
+                }}>
+                    <ComputerIcon sx={{ fontSize: 56, mb: 1, opacity: 0.4 }} />
+                    <Typography variant="h6" sx={{ color: '#c7d2fe' }}>Welcome to Weekend Support Tracker</Typography>
+                    <Typography variant="body2" sx={{ mb: 2, color: '#a5b4fc' }}>Select an entry from the sidebar, or create a new one.</Typography>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setView('create')}
+                        sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
+                        Create New Release
+                    </Button>
+                </Box>
             </Box>
         );
     }
@@ -81,6 +99,21 @@ export default function EntryDetail({ onRefresh }) {
                         }}
                     >
                         History
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ListAltIcon />}
+                        onClick={navigateToResources}
+                        sx={{
+                            textTransform: 'none', fontWeight: 600, fontSize: 13,
+                            color: '#c084fc',
+                            borderColor: '#7c3aed',
+                            borderRadius: 1.5, px: 1.5,
+                            '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
+                        }}
+                    >
+                        Resources List
                     </Button>
                 </Box>
             </Box>
