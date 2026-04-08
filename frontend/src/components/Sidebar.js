@@ -63,20 +63,13 @@ export default function Sidebar() {
                 const wb = XLSX.read(data, { type: 'array' });
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
                 if (rows.length < 2) { addToast('Resource list file is empty', 'error'); return; }
-                // Build id→name map for supervisor lookup (Enterprise ID → Display Name)
-                const idToName = {};
-                rows.slice(1).forEach(r => {
-                    const id = String(r[1] || '').trim().toLowerCase();
-                    const name = String(r[2] || '').trim();
-                    if (id && name) idToName[id] = name;
-                });
-                // Col B(idx1)=Enterprise ID, Col C(idx2)=Name, Col E(idx4)=CL, Col I(idx8)=Workday Supervisor
+                // Col B(idx1)=Name, Col C(idx2)=Enterprise ID, Col D(idx3)=Career Level, Col I(idx8)=Supervisor
                 const list = rows.slice(1).map(r => ({
-                    id: String(r[1] || '').trim().toLowerCase(),
-                    name: String(r[2] || '').trim(),
-                    careerLevel: String(r[4] || '').trim(),
-                    supervisor: idToName[String(r[8] || '').trim().toLowerCase()] || String(r[8] || '').trim(),
-                })).filter(e => e.id && e.name);
+                    id: (String(r[2] || '').trim().toLowerCase()) || String(r[1] || '').trim().toLowerCase().replace(/\s+/g, '.'),
+                    name: String(r[1] || '').trim(),
+                    careerLevel: String(r[3] || '').trim(),
+                    supervisor: String(r[8] || '').trim(),
+                })).filter(e => e.name);
                 if (list.length === 0) { addToast('No valid employee rows found', 'error'); return; }
                 await api.uploadEmployeeList(list);
                 addToast(`Resource list uploaded: ${list.length} employees`, 'success');
@@ -288,8 +281,10 @@ export default function Sidebar() {
                                                     onChange={e => setEditDate(e.target.value)}
                                                     onClick={e => e.stopPropagation()}
                                                     InputLabelProps={{ shrink: true }}
-                                                    sx={{ mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 },
-                                                        '& input::-webkit-calendar-picker-indicator': { filter: 'invert(1)', cursor: 'pointer' } }} />
+                                                    sx={{
+                                                        mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 },
+                                                        '& input::-webkit-calendar-picker-indicator': { filter: 'invert(1)', cursor: 'pointer' }
+                                                    }} />
                                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
                                                     <Tooltip title="Save">
                                                         <IconButton size="small" onClick={saveEditing} sx={{ color: '#34d399' }}>
