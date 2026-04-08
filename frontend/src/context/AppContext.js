@@ -19,9 +19,12 @@ export function AppProvider({ children }) {
     // Unsaved-changes guard
     const [pendingNav, setPendingNav] = useState(null); // { action: fn } — deferred navigation
     const unsavedCheckRef = useRef(null); // registered by TeamDetail: () => boolean
+    const saveCallbackRef = useRef(null); // registered by TeamDetail: async () => boolean
 
     const registerUnsavedCheck = useCallback((fn) => { unsavedCheckRef.current = fn; }, []);
     const unregisterUnsavedCheck = useCallback(() => { unsavedCheckRef.current = null; }, []);
+    const registerSaveCallback = useCallback((fn) => { saveCallbackRef.current = fn; }, []);
+    const unregisterSaveCallback = useCallback(() => { saveCallbackRef.current = null; }, []);
 
     /** Wrap any navigation: if unsaved changes, show guard dialog instead */
     const guardedNav = useCallback((action) => {
@@ -36,9 +39,21 @@ export function AppProvider({ children }) {
         if (pendingNav) { pendingNav.action(); }
         setPendingNav(null);
         unsavedCheckRef.current = null;
+        saveCallbackRef.current = null;
     }, [pendingNav]);
 
     const cancelPendingNav = useCallback(() => { setPendingNav(null); }, []);
+
+    const saveAndContinuePendingNav = useCallback(async () => {
+        if (saveCallbackRef.current) {
+            const ok = await saveCallbackRef.current();
+            if (!ok) return; // save failed — stay on page
+        }
+        if (pendingNav) { pendingNav.action(); }
+        setPendingNav(null);
+        unsavedCheckRef.current = null;
+        saveCallbackRef.current = null;
+    }, [pendingNav]);
 
     // Persist navigation state to sessionStorage so page survives browser refresh
     useEffect(() => {
@@ -114,8 +129,9 @@ export function AppProvider({ children }) {
             loading, setLoading,
             toasts, addToast, dismissToast,
             navigateToEntry, navigateToTeam, navigateHome, navigateToDeleted, navigateToResources,
-            pendingNav, confirmPendingNav, cancelPendingNav,
+            pendingNav, confirmPendingNav, cancelPendingNav, saveAndContinuePendingNav,
             registerUnsavedCheck, unregisterUnsavedCheck,
+            registerSaveCallback, unregisterSaveCallback,
         }}>
             {children}
         </AppContext.Provider>

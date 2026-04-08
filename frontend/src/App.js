@@ -31,7 +31,7 @@ function AppContent() {
     const {
         setEntries, selectedEntryId, setCurrentEntry,
         view, loading, setLoading,
-        pendingNav, confirmPendingNav, cancelPendingNav,
+        pendingNav, confirmPendingNav, cancelPendingNav, saveAndContinuePendingNav,
     } = useAppContext();
 
     const loadEntries = useCallback(async () => {
@@ -88,6 +88,11 @@ function AppContent() {
                         onClick={cancelPendingNav}
                         sx={{ textTransform: 'none', borderColor: '#4f46e5', color: '#a5b4fc' }}>
                         Cancel
+                    </Button>
+                    <Button size="small" variant="contained" color="success"
+                        onClick={saveAndContinuePendingNav}
+                        sx={{ textTransform: 'none' }}>
+                        Save &amp; Continue
                     </Button>
                     <Button size="small" variant="outlined" color="error"
                         onClick={confirmPendingNav}

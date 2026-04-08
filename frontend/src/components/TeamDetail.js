@@ -89,7 +89,7 @@ function calcTotalHours(timeStr) {
  * Career Level column removed per user request.
  */
 export default function TeamDetail({ entryId, teamId, onRefresh }) {
-    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck } = useAppContext();
+    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback } = useAppContext();
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [employees, setEmployees] = useState([]);
@@ -123,15 +123,16 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const hasChanges = JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot);
     useEffect(() => {
         registerUnsavedCheck(() => JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot));
-        return () => unregisterUnsavedCheck();
+        registerSaveCallback(handleSave);
+        return () => { unregisterUnsavedCheck(); unregisterSaveCallback(); };
     }); // no deps — always reflects latest
 
     if (!team) return <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>Team not found</Typography>;
 
-    /** Only employees with career level >= 10 (numeric) */
+    /** Only employees with career level exactly 9 (numeric) */
     const eligibleEmployees = employees.filter(e => {
         const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl >= 10;
+        return !isNaN(cl) && cl === 9;
     });
 
     /** Lookup career level from employee directory by name or ID */
@@ -212,8 +213,9 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
             setLineItems(JSON.parse(JSON.stringify(saved)));
             addToast('Changes saved successfully', 'success');
             onRefresh();
-        } catch (err) { addToast(err.message, 'error'); }
-        setSaving(false);
+            setSaving(false);
+            return true;
+        } catch (err) { addToast(err.message, 'error'); setSaving(false); return false; }
     };
 
     const handleCancel = () => {

@@ -37,13 +37,19 @@ export default function CreateEntryForm() {
         api.getEmployees().then(list => setEmployees(list || [])).catch(() => { });
     }, []);
 
+    // Release owners: career level 9 and below
+    const releaseOwnerOptions = employees.filter(e => {
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && cl <= 9;
+    });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!releaseOwner) { setError('Release Owner is required'); return; }
         if (!date) { setError('Date is required'); return; }
-        // Validate against resource list
-        if (employees.length > 0) {
-            const valid = employees.some(emp =>
+        // Validate against resource list (career level 9 and below only)
+        if (releaseOwnerOptions.length > 0) {
+            const valid = releaseOwnerOptions.some(emp =>
                 emp.name.toLowerCase() === releaseOwner.trim().toLowerCase() ||
                 emp.id.toLowerCase() === releaseOwner.trim().toLowerCase()
             );
@@ -88,7 +94,7 @@ export default function CreateEntryForm() {
                     <form onSubmit={handleSubmit} noValidate>
                         <Autocomplete
                             freeSolo
-                            options={employees}
+                            options={releaseOwnerOptions}
                             getOptionLabel={o => typeof o === 'string' ? o : o.name}
                             inputValue={releaseOwner}
                             onInputChange={(_, val) => { setReleaseOwner(val); setError(''); }}
