@@ -63,19 +63,19 @@ export default function Sidebar() {
                 const wb = XLSX.read(data, { type: 'array' });
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
                 if (rows.length < 2) { addToast('Resource list file is empty', 'error'); return; }
-                // Build id→name map for supervisor lookup
+                // Build id→name map for supervisor lookup (Enterprise ID → Display Name)
                 const idToName = {};
                 rows.slice(1).forEach(r => {
                     const id = String(r[1] || '').trim().toLowerCase();
                     const name = String(r[2] || '').trim();
                     if (id && name) idToName[id] = name;
                 });
-                const levelMap = { 7: 'Director', 8: 'Associate Director', 9: 'Senior Manager', 10: 'Manager', 11: 'Consultant', 12: 'Senior Analyst', 13: 'Analyst' };
+                // Col B(idx1)=Enterprise ID, Col C(idx2)=Name, Col E(idx4)=CL, Col I(idx8)=Workday Supervisor
                 const list = rows.slice(1).map(r => ({
                     id: String(r[1] || '').trim().toLowerCase(),
                     name: String(r[2] || '').trim(),
-                    careerLevel: levelMap[parseInt(r[3])] || (r[3] ? String(r[3]) : ''),
-                    supervisor: idToName[String(r[5] || '').trim().toLowerCase()] || String(r[5] || '').trim(),
+                    careerLevel: String(r[4] || '').trim(),
+                    supervisor: idToName[String(r[8] || '').trim().toLowerCase()] || String(r[8] || '').trim(),
                 })).filter(e => e.id && e.name);
                 if (list.length === 0) { addToast('No valid employee rows found', 'error'); return; }
                 await api.uploadEmployeeList(list);
