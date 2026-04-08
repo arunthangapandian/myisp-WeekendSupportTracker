@@ -646,6 +646,19 @@ async function startServer() {
         employees = [...employeeDirectory];
     }
 
+    // If employees are loaded but no upload history exists (e.g. uploaded before history tracking),
+    // synthesize a record so the UI shows the currently active list
+    if (employees.length > 0 && resourceUploadHistory.length === 0) {
+        resourceUploadHistory.push({
+            id: uuidv4(),
+            uploadedBy: 'system',
+            filename: 'Pre-existing resource list',
+            uploadedAt: new Date().toISOString(),
+            count: employees.length,
+        });
+        saveData();
+    }
+
     console.log(`Loaded ${Object.keys(entries).length} entries, ${deletedItems.length} deleted items`);
 
     app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
