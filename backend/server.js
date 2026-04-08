@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,13 +33,19 @@ const upload = multer({
     },
 });
 
-// ── Persistent Store (JSON file) ─────────────────────────────
-// In production use Render's persistent disk at /data
-const dataDir = process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname);
-try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
-const DATA_FILE = path.join(dataDir, 'data.json');
+// ── Persistent Store (PostgreSQL + JSON file fallback) ───────
+let pool = null;
+if (process.env.DATABASE_URL) {
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+    });
+    console.log('PostgreSQL configured via DATABASE_URL');
+}
 
-function loadData() {
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+function loadDataFromFile() {
     try {
         if (fs.existsSync(DATA_FILE)) {
             const raw = fs.readFileSync(DATA_FILE, 'utf-8');
@@ -51,25 +58,50 @@ function loadData() {
             };
         }
     } catch (err) {
-        console.error('Failed to load data.json, starting fresh:', err.message);
+        console.error('Failed to load data.json:', err.message);
     }
-    return { entries: {}, deletedItems: [], employees: null, changelogs: {} };
+    return null;
+}
+
+async function loadDataFromDB() {
+    if (!pool) return null;
+    try {
+        const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs')");
+        const data = { entries: {}, deletedItems: [], employees: null, changelogs: {} };
+        res.rows.forEach(row => { data[row.key] = row.value; });
+        console.log(`Loaded ${Object.keys(data.entries).length} entries from PostgreSQL`);
+        return data;
+    } catch (err) {
+        console.error('Failed to load from PostgreSQL:', err.message);
+        return null;
+    }
 }
 
 function saveData() {
+    // File fallback (for local dev)
     try {
         fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems, employees, changelogs }, null, 2), 'utf-8');
     } catch (err) {
         console.error('Failed to save data.json:', err.message);
     }
+    // PostgreSQL (async, fire-and-forget)
+    if (pool) {
+        const upsert = (key, value) =>
+            pool.query(
+                `INSERT INTO app_data (key, value) VALUES ($1, $2::jsonb) ON CONFLICT (key) DO UPDATE SET value = $2::jsonb`,
+                [key, JSON.stringify(value)]
+            ).catch(err => console.error(`PG save ${key}:`, err.message));
+        upsert('entries', entries);
+        upsert('deletedItems', deletedItems);
+        upsert('employees', employees);
+        upsert('changelogs', changelogs);
+    }
 }
 
-const loaded = loadData();
-let entries = loaded.entries;
-let deletedItems = loaded.deletedItems;
-let changelogs = loaded.changelogs || {};
-// Employee directory — loaded from persistent store or falls back to hardcoded
-let employees = loaded.employees || employeeDirectory;
+let entries = {};
+let deletedItems = [];
+let changelogs = {};
+let employees = [];
 
 // Allowed users whitelist – only these enterprise IDs can sign in
 const allowedUsers = [
@@ -550,4 +582,39 @@ if (fs.existsSync(frontendBuildPath)) {
     });
 }
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+// ── Start server with async data load ────────────────────────
+async function startServer() {
+    // Init PostgreSQL table if available
+    if (pool) {
+        try {
+            await pool.query(`CREATE TABLE IF NOT EXISTS app_data (key TEXT PRIMARY KEY, value JSONB NOT NULL DEFAULT '{}')`);
+            console.log('PostgreSQL table ready');
+        } catch (err) {
+            console.error('PostgreSQL init failed:', err.message);
+            pool = null;
+        }
+    }
+
+    // Load data: prefer PostgreSQL, fallback to file
+    const dbData = await loadDataFromDB();
+    const fileData = loadDataFromFile();
+    const data = dbData || fileData || { entries: {}, deletedItems: [], employees: null, changelogs: {} };
+
+    entries = data.entries || {};
+    deletedItems = data.deletedItems || [];
+    changelogs = data.changelogs || {};
+    employees = data.employees || [];
+
+    if (!employees || employees.length === 0) {
+        employees = [...employeeDirectory];
+    }
+
+    console.log(`Loaded ${Object.keys(entries).length} entries, ${deletedItems.length} deleted items`);
+
+    app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+}
+
+startServer().catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+});
