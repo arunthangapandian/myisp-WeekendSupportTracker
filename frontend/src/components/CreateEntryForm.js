@@ -41,6 +41,14 @@ export default function CreateEntryForm() {
         e.preventDefault();
         if (!releaseOwner) { setError('Release Owner is required'); return; }
         if (!date) { setError('Date is required'); return; }
+        // Validate against resource list
+        if (employees.length > 0) {
+            const valid = employees.some(emp =>
+                emp.name.toLowerCase() === releaseOwner.trim().toLowerCase() ||
+                emp.id.toLowerCase() === releaseOwner.trim().toLowerCase()
+            );
+            if (!valid) { setError('Enter valid Name'); return; }
+        }
         setSubmitting(true);
         setLoading(true);
         try {

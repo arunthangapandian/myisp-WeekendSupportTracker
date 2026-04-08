@@ -89,7 +89,7 @@ function calcTotalHours(timeStr) {
  * Career Level column removed per user request.
  */
 export default function TeamDetail({ entryId, teamId, onRefresh }) {
-    const { currentEntry, addToast } = useAppContext();
+    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck } = useAppContext();
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [employees, setEmployees] = useState([]);
@@ -119,7 +119,20 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     useEffect(() => { syncFromServer(); }, [syncFromServer]);
 
+    // Register unsaved-changes guard with AppContext navigation
+    const hasChanges = JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot);
+    useEffect(() => {
+        registerUnsavedCheck(() => JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot));
+        return () => unregisterUnsavedCheck();
+    }); // no deps — always reflects latest
+
     if (!team) return <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>Team not found</Typography>;
+
+    /** Only employees with career level >= 10 (numeric) */
+    const eligibleEmployees = employees.filter(e => {
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && cl >= 10;
+    });
 
     /** Lookup career level from employee directory by name or ID */
     const lookupCareerLevel = (name) => {
@@ -129,17 +142,17 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         return match ? match.careerLevel : '';
     };
 
-    /** Lookup full employee record by name or ID */
+    /** Lookup full employee record by name or ID — only eligible (10+) */
     const lookupEmployee = (name) =>
-        employees.find(e =>
+        eligibleEmployees.find(e =>
             e.id.toLowerCase() === name.toLowerCase() ||
             e.name.toLowerCase() === name.toLowerCase());
 
-    /** Employees filtered by 2+ char input for autocomplete */
+    /** Employees filtered by 2+ char input for autocomplete — only 10+ career level */
     const getNameSuggestions = (input) => {
         if (!input || input.length < 2) return [];
         const q = input.toLowerCase();
-        return employees
+        return eligibleEmployees
             .filter(e => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q))
             .slice(0, 10);
     };
@@ -161,6 +174,14 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const handleAdd = () => {
         if (!newName.trim()) { setError('Name is required'); return; }
         const trimmed = newName.trim();
+        // Validate against resource list (10+ only)
+        if (eligibleEmployees.length > 0) {
+            const valid = eligibleEmployees.some(e =>
+                e.name.toLowerCase() === trimmed.toLowerCase() ||
+                e.id.toLowerCase() === trimmed.toLowerCase()
+            );
+            if (!valid) { setError('Enter valid Name'); return; }
+        }
         const duplicate = lineItems.find(li => li.name.toLowerCase() === trimmed.toLowerCase());
         if (duplicate) { setError(`"${trimmed}" already exists in this team`); return; }
         const emp = lookupEmployee(trimmed);
@@ -298,9 +319,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     };
 
     const handleExport = () => { window.open(api.getTeamExportUrl(entryId, teamId), '_blank'); };
-    const hasChanges = JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot);
-
-    // ── Filtering ──
     const filteredItems = lineItems.filter(li => {
         if (filters.name && !li.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
         if (filters.careerLevel && !(li.careerLevel || '').toLowerCase().includes(filters.careerLevel.toLowerCase())) return false;

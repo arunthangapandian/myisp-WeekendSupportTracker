@@ -15,6 +15,7 @@ import AddIcon from '@mui/icons-material/Add';
 import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import HomeIcon from '@mui/icons-material/Home';
 
 /**
  * Orchestrator for a single date entry.
@@ -32,7 +33,11 @@ export default function EntryDetail({ onRefresh }) {
     if (!currentEntry) {
         return (
             <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#a5b4fc' }}>
+                        <HomeIcon sx={{ fontSize: 15 }} />
+                        <Typography sx={{ fontSize: 12, color: '#a5b4fc', fontWeight: 600 }}>Home</Typography>
+                    </Box>
                     <Button
                         variant="outlined"
                         size="small"

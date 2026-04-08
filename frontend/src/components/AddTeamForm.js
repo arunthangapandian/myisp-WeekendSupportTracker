@@ -45,6 +45,14 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
         e.preventDefault();
         if (!teamName.trim()) { setError('Team Name is required'); return; }
         if (!leadName.trim()) { setError('Lead Name is required'); return; }
+        // Validate lead name against resource list
+        if (employees.length > 0) {
+            const valid = employees.some(emp =>
+                emp.name.toLowerCase() === leadName.trim().toLowerCase() ||
+                emp.id.toLowerCase() === leadName.trim().toLowerCase()
+            );
+            if (!valid) { setError('Enter valid Name'); return; }
+        }
         setLoading(true);
         try {
             await api.addTeam(entryId, {

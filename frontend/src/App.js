@@ -11,6 +11,12 @@ import EntryDetail from './components/EntryDetail';
 import DeletedItems from './components/DeletedItems';
 import ResourcesListScreen from './components/ResourcesListScreen';
 import Toast from './components/Toast';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -25,6 +31,7 @@ function AppContent() {
     const {
         setEntries, selectedEntryId, setCurrentEntry,
         view, loading, setLoading,
+        pendingNav, confirmPendingNav, cancelPendingNav,
     } = useAppContext();
 
     const loadEntries = useCallback(async () => {
@@ -67,6 +74,28 @@ function AppContent() {
                 </Box>
             </Box>
             <Toast />
+            {/* Unsaved changes navigation guard */}
+            <Dialog open={!!pendingNav} onClose={cancelPendingNav} maxWidth="xs" fullWidth
+                PaperProps={{ sx: { borderRadius: 2, bgcolor: '#1a1744', border: '1px solid #4f46e5' } }}>
+                <DialogTitle sx={{ fontWeight: 700, color: '#fbbf24', fontSize: 16 }}>⚠️ Unsaved Changes</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ color: '#e0e7ff', fontSize: 14 }}>
+                        You have unsaved changes. What would you like to do?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+                    <Button size="small" variant="outlined"
+                        onClick={cancelPendingNav}
+                        sx={{ textTransform: 'none', borderColor: '#4f46e5', color: '#a5b4fc' }}>
+                        Cancel
+                    </Button>
+                    <Button size="small" variant="outlined" color="error"
+                        onClick={confirmPendingNav}
+                        sx={{ textTransform: 'none' }}>
+                        Discard &amp; Continue
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
