@@ -27,6 +27,7 @@ export function AppProvider({ children }) {
     const unregisterUnsavedCheck = useCallback(() => { unsavedCheckRef.current = null; }, []);
     const registerSaveCallback = useCallback((fn) => { saveCallbackRef.current = fn; }, []);
     const unregisterSaveCallback = useCallback(() => { saveCallbackRef.current = null; }, []);
+    const hasUnsavedChanges = useCallback(() => !!(unsavedCheckRef.current && unsavedCheckRef.current()), []);
 
     /** Wrap any navigation: if unsaved changes, show guard dialog instead */
     const guardedNav = useCallback((action) => {
@@ -140,6 +141,7 @@ export function AppProvider({ children }) {
             pendingNav, confirmPendingNav, cancelPendingNav, saveAndContinuePendingNav,
             registerUnsavedCheck, unregisterUnsavedCheck,
             registerSaveCallback, unregisterSaveCallback,
+            hasUnsavedChanges,
         }}>
             {children}
         </AppContext.Provider>

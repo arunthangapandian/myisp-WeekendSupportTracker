@@ -33,6 +33,7 @@ function AppContent() {
         view, loading, setLoading,
         pendingNav, confirmPendingNav, cancelPendingNav, saveAndContinuePendingNav,
         loadEmployees,
+        hasUnsavedChanges,
     } = useAppContext();
 
     const loadEntries = useCallback(async () => {
@@ -59,12 +60,14 @@ function AppContent() {
 
     useEffect(() => { loadEntry(); }, [loadEntry]);
 
-    // Poll current entry every 20s to catch changes by other users
+    // Poll current entry every 20s — but only when no unsaved local changes
     useEffect(() => {
         if (!selectedEntryId) return;
-        const id = setInterval(() => { loadEntry(); }, 20000);
+        const id = setInterval(() => {
+            if (!hasUnsavedChanges()) loadEntry();
+        }, 20000);
         return () => clearInterval(id);
-    }, [selectedEntryId, loadEntry]);
+    }, [selectedEntryId, loadEntry, hasUnsavedChanges]);
 
     const refresh = () => { loadEntry(); loadEntries(); };
 
