@@ -16,6 +16,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Badge from '@mui/material/Badge';
 import Collapse from '@mui/material/Collapse';
 import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -47,6 +48,12 @@ export default function Sidebar() {
     const [editingEntryId, setEditingEntryId] = useState(null);
     const [editDate, setEditDate] = useState('');
     const [editOwner, setEditOwner] = useState('');
+    const [ownerError, setOwnerError] = useState('');
+    const [employees, setEmployees] = useState([]);
+
+    useEffect(() => {
+        api.getEmployees().then(list => setEmployees(list || [])).catch(() => { });
+    }, []);
 
     // Load deleted items count
     useEffect(() => {
@@ -106,12 +113,22 @@ export default function Sidebar() {
         setEditingEntryId(null);
         setEditDate('');
         setEditOwner('');
+        setOwnerError('');
     };
 
     const saveEditing = async (e) => {
         if (e) e.stopPropagation();
         if (!editOwner.trim()) { addToast('Release Owner cannot be empty', 'error'); return; }
         if (!editDate) { addToast('Date cannot be empty', 'error'); return; }
+        // Validate against resource list if employees are loaded
+        if (employees.length > 0) {
+            const valid = employees.some(emp =>
+                emp.name.toLowerCase() === editOwner.trim().toLowerCase() ||
+                emp.id.toLowerCase() === editOwner.trim().toLowerCase()
+            );
+            if (!valid) { setOwnerError('Enter valid Name'); return; }
+        }
+        setOwnerError('');
         try {
             const empId = localStorage.getItem('empId') || 'UNKNOWN';
             await api.updateEntry(editingEntryId, { releaseOwner: editOwner.trim(), date: editDate, changedBy: empId });
@@ -220,10 +237,34 @@ export default function Sidebar() {
                                     {yearEntries.map(entry => (
                                         editingEntryId === entry.id ? (
                                             <Box key={entry.id} sx={{ px: 1.5, py: 1, ml: 2, mb: 0.5, bgcolor: '#252149', borderRadius: 1, border: '1px solid #4f46e5' }}>
-                                                <TextField fullWidth size="small" label="Owner" value={editOwner}
-                                                    onChange={e => setEditOwner(e.target.value)}
+                                                <Autocomplete
+                                                    freeSolo
+                                                    size="small"
+                                                    options={employees}
+                                                    getOptionLabel={o => typeof o === 'string' ? o : o.name}
+                                                    inputValue={editOwner}
+                                                    onInputChange={(_, val) => { setEditOwner(val); setOwnerError(''); }}
+                                                    onChange={(_, val) => { if (val && typeof val === 'object') { setEditOwner(val.name); setOwnerError(''); } }}
+                                                    filterOptions={(opts, { inputValue }) => {
+                                                        if (!inputValue || inputValue.length < 2) return [];
+                                                        const q = inputValue.toLowerCase();
+                                                        return opts.filter(o => o.name.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)).slice(0, 8);
+                                                    }}
+                                                    renderOption={(props, o) => (
+                                                        <li {...props} key={o.id}>
+                                                            <Typography sx={{ fontSize: 11 }}>{o.name}</Typography>
+                                                        </li>
+                                                    )}
+                                                    renderInput={(params) => (
+                                                        <TextField {...params} label="Owner"
+                                                            error={!!ownerError}
+                                                            helperText={ownerError}
+                                                            onClick={e => e.stopPropagation()}
+                                                            sx={{ mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 } }} />
+                                                    )}
+                                                    ListboxProps={{ sx: { maxHeight: 180, fontSize: 11 } }}
                                                     onClick={e => e.stopPropagation()}
-                                                    sx={{ mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 } }} />
+                                                />
                                                 <TextField fullWidth size="small" type="date" label="Date" value={editDate}
                                                     onChange={e => setEditDate(e.target.value)}
                                                     onClick={e => e.stopPropagation()}

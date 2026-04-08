@@ -26,7 +26,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DescriptionIcon from '@mui/icons-material/Description';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import CachedIcon from '@mui/icons-material/Cached';
 
 /**
  * Summary cards at top of date details screen.
@@ -294,7 +294,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                         <Tooltip title="Re-upload Sanity Sheet">
                             <IconButton size="small" onClick={() => reuploadInputRef.current?.click()}
                                 sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
-                                <RefreshIcon fontSize="small" />
+                                <CachedIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
                         <input ref={reuploadInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"

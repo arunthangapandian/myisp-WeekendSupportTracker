@@ -12,7 +12,9 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
+import IconButton from '@mui/material/IconButton';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * "Create New Release Details" form.
@@ -20,7 +22,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
  */
 export default function CreateEntryForm() {
     const { empId } = useAuth();
-    const { addToast, setLoading, navigateToEntry, setEntries } = useAppContext();
+    const { addToast, setLoading, navigateToEntry, setEntries, navigateHome } = useAppContext();
 
     const [employees, setEmployees] = useState([]);
     const [releaseOwner, setReleaseOwner] = useState('');
@@ -62,7 +64,15 @@ export default function CreateEntryForm() {
 
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
-            <Card sx={{ maxWidth: 500, width: '100%', borderRadius: 3, bgcolor: '#1a1744', border: '1px solid #312e81' }}>
+            <Card sx={{ maxWidth: 500, width: '100%', borderRadius: 3, bgcolor: '#1a1744', border: '1px solid #312e81', position: 'relative' }}>
+                <IconButton
+                    size="small"
+                    onClick={navigateHome}
+                    aria-label="Close"
+                    sx={{ position: 'absolute', top: 8, right: 8, color: '#a5b4fc', zIndex: 1, '&:hover': { color: '#f87171', bgcolor: 'rgba(248,113,113,0.1)' } }}
+                >
+                    <CloseIcon fontSize="small" />
+                </IconButton>
                 <CardContent sx={{ p: 4 }}>
                     <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: '#e0e7ff' }}>
                         📋 Create New Release Details

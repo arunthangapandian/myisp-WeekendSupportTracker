@@ -2,11 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { formatDateLabel } from '../utils/helpers';
 import api from '../utils/api';
 import * as XLSX from 'xlsx';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Table from '@mui/material/Table';
 import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
@@ -16,9 +18,11 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import BreadcrumbLink from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import HomeIcon from '@mui/icons-material/Home';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 /**
  * Resources List screen – manage the master employee resource file.
@@ -26,7 +30,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
  * Upload button is here; NOT in the sidebar.
  */
 export default function ResourcesListScreen() {
-    const { navigateHome, addToast } = useAppContext();
+    const { navigateHome, navigateToEntry, currentEntry, addToast } = useAppContext();
     const { empId } = useAuth();
     const [uploads, setUploads] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -73,9 +77,23 @@ export default function ResourcesListScreen() {
         };
         reader.readAsArrayBuffer(file);
         e.target.value = '';
-    };
-
-    const formatTimestamp = (ts) => {
+        const handleExportEmployees = async () => {
+            try {
+                const list = await api.getEmployees();
+                if (!list || list.length === 0) { addToast('No employee data to export', 'warning'); return; }
+                const header = ['ID', 'Name', 'Career Level', 'Supervisor'];
+                const rows = [header, ...list.map(e => [e.id || '', e.name || '', e.careerLevel || '', e.supervisor || ''])];
+                const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `resource-list-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                addToast('Employee list exported', 'success');
+            } catch { addToast('Export failed', 'error'); }
+        };
         const d = new Date(ts);
         return d.toLocaleString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric',
@@ -95,6 +113,15 @@ export default function ResourcesListScreen() {
                     >
                         <HomeIcon sx={{ fontSize: 16 }} /> Home
                     </BreadcrumbLink>
+                    {currentEntry && (
+                        <BreadcrumbLink
+                            underline="hover"
+                            sx={{ cursor: 'pointer', color: '#a5b4fc' }}
+                            onClick={() => navigateToEntry(currentEntry.id)}
+                        >
+                            {formatDateLabel(currentEntry.date)}
+                        </BreadcrumbLink>
+                    )}
                     <Typography
                         sx={{ color: '#e0e7ff', display: 'flex', alignItems: 'center', gap: 0.5 }}
                         fontSize={13}
@@ -168,12 +195,20 @@ export default function ResourcesListScreen() {
                                     <TableCell sx={{ color: '#a5b4fc', fontSize: 12 }}>{i + 1}</TableCell>
                                     <TableCell sx={{ color: '#e0e7ff', fontSize: 12, fontWeight: 600 }}>{u.uploadedBy}</TableCell>
                                     <TableCell sx={{ color: '#c7d2fe', fontSize: 12 }}>
-                                        <Chip
-                                            label={u.filename}
-                                            size="small"
-                                            variant="outlined"
-                                            sx={{ borderColor: '#4f46e5', color: '#c7d2fe', fontSize: 11, maxWidth: 260 }}
-                                        />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Chip
+                                                label={u.filename}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ borderColor: '#4f46e5', color: '#c7d2fe', fontSize: 11, maxWidth: 220 }}
+                                            />
+                                            <Tooltip title="Export employee list as CSV">
+                                                <IconButton size="small" onClick={handleExportEmployees}
+                                                    sx={{ color: '#34d399', '&:hover': { color: '#059669' } }}>
+                                                    <FileDownloadIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
                                     </TableCell>
                                     <TableCell sx={{ color: '#34d399', fontSize: 12 }}>{u.count}</TableCell>
                                     <TableCell sx={{ color: '#a5b4fc', fontSize: 11 }}>{formatTimestamp(u.uploadedAt)}</TableCell>
