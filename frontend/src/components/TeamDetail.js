@@ -89,7 +89,7 @@ function calcTotalHours(timeStr) {
  * Career Level column removed per user request.
  */
 export default function TeamDetail({ entryId, teamId, onRefresh }) {
-    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback, employees } = useAppContext();
+    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback, employees, hasUnsavedChanges } = useAppContext();
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [lineItems, setLineItems] = useState([]);
@@ -106,11 +106,13 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     const syncFromServer = useCallback(() => {
         if (team) {
+            // Don't overwrite local unsaved entries when server data refreshes
+            if (hasUnsavedChanges()) return;
             const snap = JSON.parse(JSON.stringify(team.lineItems || []));
             setLineItems(snap);
             setSavedSnapshot(JSON.parse(JSON.stringify(snap)));
         }
-    }, [team]);
+    }, [team, hasUnsavedChanges]);
 
     useEffect(() => { syncFromServer(); }, [syncFromServer]);
 
