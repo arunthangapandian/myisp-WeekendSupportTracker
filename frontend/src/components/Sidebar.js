@@ -200,6 +200,13 @@ export default function Sidebar() {
                     sx={{ color: '#c7d2fe' }}>
                     {sidebarOpen ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
                 </IconButton>
+                {!sidebarOpen && (
+                    <Tooltip title="Upload Master Resource List (.xlsx/.csv)" placement="right">
+                        <IconButton size="small" onClick={() => resourceInputRef.current?.click()} sx={{ color: '#c7d2fe' }}>
+                            <CloudUploadIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                )}
                 {sidebarOpen && (
                     <>
                         <Typography variant="caption" fontWeight={700} color="#a5b4fc"
@@ -211,15 +218,15 @@ export default function Sidebar() {
                                 <DownloadIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Upload Master Resource List (.xlsx)">
+                        <Tooltip title="Upload Master Resource List (.xlsx/.csv)">
                             <IconButton size="small" onClick={() => resourceInputRef.current?.click()} sx={{ color: '#c7d2fe' }}>
                                 <CloudUploadIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <input ref={resourceInputRef} type="file" hidden accept=".xlsx,.xls"
-                            onChange={handleResourceUpload} aria-label="Upload resource list" />
                     </>
                 )}
+                <input ref={resourceInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
+                    onChange={handleResourceUpload} aria-label="Upload resource list" />
             </Box>
 
             {sidebarOpen && (
