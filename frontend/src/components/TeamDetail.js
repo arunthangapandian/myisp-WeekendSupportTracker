@@ -131,6 +131,21 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         return match ? match.careerLevel : '';
     };
 
+    /** Lookup full employee record by name or ID */
+    const lookupEmployee = (name) =>
+        employees.find(e =>
+            e.id.toLowerCase() === name.toLowerCase() ||
+            e.name.toLowerCase() === name.toLowerCase());
+
+    /** Employees filtered by 2+ char input for autocomplete */
+    const getNameSuggestions = (input) => {
+        if (!input || input.length < 2) return [];
+        const q = input.toLowerCase();
+        return employees
+            .filter(e => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q))
+            .slice(0, 10);
+    };
+
     /** Parse stored time string into start/end parts */
     const parseTimeParts = (timeStr) => {
         if (!timeStr || !timeStr.includes('-')) return { start: '', end: '' };
@@ -150,10 +165,11 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         const trimmed = newName.trim();
         const duplicate = lineItems.find(li => li.name.toLowerCase() === trimmed.toLowerCase());
         if (duplicate) { setError(`"${trimmed}" already exists in this team`); return; }
-        const cl = lookupCareerLevel(trimmed);
+        const emp = lookupEmployee(trimmed);
         setLineItems(prev => [...prev, {
-            id: `temp-${Date.now()}`, name: trimmed,
-            careerLevel: cl, supervisor: '', allowanceCompoff: 'Compoff', time: '',
+            id: `temp-${Date.now()}`, name: emp ? emp.name : trimmed,
+            careerLevel: emp ? (emp.careerLevel || '') : '', supervisor: emp ? (emp.supervisor || '') : '',
+            allowanceCompoff: 'Compoff', time: '',
         }]);
         setNewName('');
         setError('');
@@ -326,11 +342,36 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
             {/* Add Line Item */}
             <Card sx={{ mb: 2, borderRadius: 2, bgcolor: '#1a1744', border: '1px solid #312e81' }}>
-                <CardContent sx={{ py: 1.5, display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                    <TextField size="small" label="Name *" placeholder="Enter member name or Employee ID"
-                        value={newName} onChange={e => { setNewName(e.target.value); setError(''); }}
-                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
-                        sx={{ flex: 1 }} />
+                <CardContent sx={{ py: 1.5, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                    <Autocomplete
+                        freeSolo
+                        size="small"
+                        options={getNameSuggestions(newName)}
+                        getOptionLabel={o => typeof o === 'string' ? o : o.name}
+                        inputValue={newName}
+                        onInputChange={(_, val) => { setNewName(val); setError(''); }}
+                        onChange={(_, val) => {
+                            if (val && typeof val === 'object') {
+                                setNewName(val.name);
+                            }
+                        }}
+                        filterOptions={(x) => x}
+                        renderOption={(props, o) => (
+                            <li {...props} key={o.id}>
+                                <Box>
+                                    <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
+                                    <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}{o.supervisor ? ` • Supervisor: ${o.supervisor}` : ''}</Typography>
+                                </Box>
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField {...params} label="Name *" placeholder="Type 2+ chars to search"
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
+                                sx={{ flex: 1 }} />
+                        )}
+                        sx={{ flex: 1 }}
+                        ListboxProps={{ sx: { maxHeight: 240 } }}
+                    />
                     <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small"
                         sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none', height: 40 }}>
                         Add

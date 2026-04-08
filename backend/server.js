@@ -33,24 +33,31 @@ const upload = multer({
 });
 
 // ── Persistent Store (JSON file) ─────────────────────────────
-const DATA_FILE = path.join(__dirname, 'data.json');
+// In production use Render's persistent disk at /data
+const dataDir = process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname);
+try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
+const DATA_FILE = path.join(dataDir, 'data.json');
 
 function loadData() {
     try {
         if (fs.existsSync(DATA_FILE)) {
             const raw = fs.readFileSync(DATA_FILE, 'utf-8');
             const parsed = JSON.parse(raw);
-            return { entries: parsed.entries || {}, deletedItems: parsed.deletedItems || [] };
+            return {
+                entries: parsed.entries || {},
+                deletedItems: parsed.deletedItems || [],
+                employees: parsed.employees || null,
+            };
         }
     } catch (err) {
         console.error('Failed to load data.json, starting fresh:', err.message);
     }
-    return { entries: {}, deletedItems: [] };
+    return { entries: {}, deletedItems: [], employees: null };
 }
 
 function saveData() {
     try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems }, null, 2), 'utf-8');
+        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems, employees }, null, 2), 'utf-8');
     } catch (err) {
         console.error('Failed to save data.json:', err.message);
     }
@@ -59,6 +66,8 @@ function saveData() {
 const loaded = loadData();
 let entries = loaded.entries;
 let deletedItems = loaded.deletedItems;
+// Employee directory — loaded from persistent store or falls back to hardcoded
+let employees = loaded.employees || employeeDirectory;
 
 // Allowed users whitelist – only these enterprise IDs can sign in
 const allowedUsers = [
@@ -127,7 +136,17 @@ app.get('/api/options/employee-lookup', (req, res) => {
         e.id.toLowerCase() === q || e.name.toLowerCase() === q);
     res.json(match || null);
 });
-app.get('/api/options/employees', (_r, res) => res.json(employeeDirectory));
+app.get('/api/options/employees', (_r, res) => res.json(employees));
+
+// Replace employee directory from uploaded resource list (parsed on frontend)
+app.post('/api/options/employees', (req, res) => {
+    const list = req.body;
+    if (!Array.isArray(list) || list.length === 0)
+        return res.status(400).json({ error: 'Array of employees required' });
+    employees = list;
+    saveData();
+    res.json({ success: true, count: list.length });
+});
 
 // ── Entries ──────────────────────────────────────────────────
 app.get('/api/entries', (_r, res) => {

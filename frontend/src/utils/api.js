@@ -78,6 +78,13 @@ const api = {
         }),
 
     getEntryHistory: (entryId) => request(`${BASE}/entries/${entryId}/history`),
+
+    uploadEmployeeList: (employees) =>
+        request(`${BASE}/options/employees`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employees),
+        }),
+
     getExportUrl: (entryId) => `${BASE}/entries/${entryId}/export`,
     getTeamExportUrl: (entryId, teamId) => `${BASE}/entries/${entryId}/teams/${teamId}/export`,
 
