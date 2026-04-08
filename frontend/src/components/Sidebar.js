@@ -238,6 +238,12 @@ export default function Sidebar() {
                             sx={{ textTransform: 'none', bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, fontSize: 12 }}>
                             Create New Release
                         </Button>
+                        <Button variant="outlined" fullWidth size="small"
+                            startIcon={<CloudUploadIcon />}
+                            onClick={() => resourceInputRef.current?.click()}
+                            sx={{ textTransform: 'none', borderColor: '#4f46e5', color: '#a5b4fc', '&:hover': { borderColor: '#818cf8', bgcolor: '#252149' }, fontSize: 12, mt: 1 }}>
+                            Upload Resource List
+                        </Button>
                     </Box>
                     <Divider sx={{ borderColor: '#312e81' }} />
                     <List dense sx={{ flex: 1, overflowY: 'auto', px: 0.5 }}>
