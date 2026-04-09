@@ -58,12 +58,44 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
         }
         setLoading(true);
         try {
-            await api.addTeam(entryId, {
+            const newTeam = await api.addTeam(entryId, {
                 teamName: teamName.trim(), leadName: leadName.trim(),
                 totalCount: 0, createdBy: empId,
             });
+
+            // Auto-populate: find all resources whose Workday supervisor is this lead
+            const leadRecord = employees.find(e =>
+                e.name.toLowerCase() === leadName.trim().toLowerCase() ||
+                e.id.toLowerCase() === leadName.trim().toLowerCase()
+            );
+            const supervisorId = leadRecord ? leadRecord.id : leadName.trim().toLowerCase();
+            const supervisorName = leadRecord ? leadRecord.name.toLowerCase() : leadName.trim().toLowerCase();
+
+            const subordinates = employees.filter(e => {
+                const sv = (e.supervisor || '').toLowerCase().trim();
+                if (!sv) return false;
+                // Match against lead's enterprise ID or full name
+                return sv === supervisorId.toLowerCase() || sv === supervisorName;
+            }).filter(e => {
+                // Only include career level 9 and above
+                const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+                return !isNaN(cl) && cl >= 9;
+            });
+
+            if (subordinates.length > 0) {
+                const items = subordinates.map(e => ({
+                    name: e.name,
+                    careerLevel: e.careerLevel || '',
+                    supervisor: e.supervisor || '',
+                    allowanceCompoff: 'Compoff',
+                }));
+                await api.bulkAddLineItems(entryId, newTeam.id, items);
+                addToast(`Team "${teamName.trim()}" created with ${subordinates.length} resource(s) auto-added`, 'success');
+            } else {
+                addToast(`Team "${teamName.trim()}" added`, 'success');
+            }
+
             setTeamName(''); setLeadName(''); setError('');
-            addToast(`Team "${teamName.trim()}" added`, 'success');
             onTeamAdded();
         } catch (err) {
             setError(err.message);

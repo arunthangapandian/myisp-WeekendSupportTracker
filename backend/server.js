@@ -347,10 +347,11 @@ app.post('/api/entries/:eid/teams/:tid/bulk-line-items', (req, res) => {
     if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
     const added = [];
     const updated = [];
-    items.forEach(({ name, careerLevel, allowanceCompoff }) => {
+    items.forEach(({ name, careerLevel, supervisor, allowanceCompoff }) => {
         if (!name || !name.trim()) return;
         const trimmedName = name.trim();
         const cl = careerLevel || '';
+        const sv = supervisor || '';
         const ac = allowanceCompoff || 'Compoff';
         // Check for existing item with same name (case-insensitive)
         const existingIdx = team.lineItems.findIndex(li =>
@@ -361,11 +362,12 @@ app.post('/api/entries/:eid/teams/:tid/bulk-line-items', (req, res) => {
                 ...team.lineItems[existingIdx],
                 name: trimmedName,
                 careerLevel: cl || team.lineItems[existingIdx].careerLevel,
+                supervisor: sv || team.lineItems[existingIdx].supervisor || '',
                 allowanceCompoff: ac,
             };
             updated.push(team.lineItems[existingIdx]);
         } else {
-            const item = { id: uuidv4(), name: trimmedName, careerLevel: cl, allowanceCompoff: ac };
+            const item = { id: uuidv4(), name: trimmedName, careerLevel: cl, supervisor: sv, allowanceCompoff: ac };
             team.lineItems.push(item);
             added.push(item);
         }
