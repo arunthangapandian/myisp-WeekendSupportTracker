@@ -36,9 +36,12 @@ export default function Header() {
                             Weekend Production Support Details
                         </Typography>
                     </Box>
-                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
                         <Typography variant="h6" fontWeight={800} sx={{ color: '#a5b4fc', letterSpacing: 1 }}>
                             MyISP
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#6366f1', fontWeight: 500, letterSpacing: 0.5 }}>
+                            — myIntegrated Solution Platform
                         </Typography>
                     </Box>
                     <Chip label={empId} size="small" sx={{ mr: 1, fontWeight: 600, bgcolor: '#312e81', color: '#e0e7ff' }}

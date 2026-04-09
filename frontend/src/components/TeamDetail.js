@@ -22,11 +22,15 @@ import Select from '@mui/material/Select';
 import Autocomplete from '@mui/material/Autocomplete';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import SaveIcon from '@mui/icons-material/Save';
@@ -102,6 +106,8 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const [saving, setSaving] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({ name: '', careerLevel: '', supervisor: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
+    const [commentDialogItem, setCommentDialogItem] = useState(null); // { id, notes }
+    const [commentDraft, setCommentDraft] = useState('');
     const fileInputRef = useRef(null);
 
     const syncFromServer = useCallback(() => {
@@ -186,7 +192,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         setLineItems(prev => [...prev, {
             id: `temp-${Date.now()}`, name: emp ? emp.name : trimmed,
             careerLevel: emp ? (emp.careerLevel || '') : '', supervisor: emp ? (emp.supervisor || '') : '',
-            allowanceCompoff: 'Compoff', time: '',
+            allowanceCompoff: 'Compoff', time: '11:00 AM - ', notes: '',
         }]);
         setNewName('');
         setError('');
@@ -555,15 +561,18 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 2px' }}>
                                                     <Box sx={{ display: 'flex', gap: 0 }}>
-                                                        <IconButton size="small"
-                                                            onClick={() => setEditingId(editingId === li.id ? null : li.id)}
-                                                            title={editingId === li.id ? 'Done' : 'Edit'}>
-                                                            {editingId === li.id ? <CheckIcon sx={{ fontSize: 15 }} color="success" /> : <EditIcon sx={{ fontSize: 15 }} />}
-                                                        </IconButton>
                                                         <IconButton size="small" onClick={() => setDeleteTarget(li)}
                                                             aria-label={`Delete ${li.name}`}>
                                                             <DeleteIcon sx={{ fontSize: 15 }} />
                                                         </IconButton>
+                                                        <Tooltip title={li.notes ? li.notes : 'Add comment'}>
+                                                            <IconButton size="small"
+                                                                onClick={() => { setCommentDialogItem(li); setCommentDraft(li.notes || ''); }}
+                                                                aria-label={`Comment for ${li.name}`}
+                                                                sx={{ color: li.notes ? '#818cf8' : undefined }}>
+                                                                {li.notes ? <ChatBubbleIcon sx={{ fontSize: 15 }} /> : <ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />}
+                                                            </IconButton>
+                                                        </Tooltip>
                                                     </Box>
                                                 </TableCell>
                                             </TableRow>
@@ -579,6 +588,30 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Comment dialog */}
+            <Dialog open={!!commentDialogItem} onClose={() => setCommentDialogItem(null)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ pb: 1 }}>Comment — {commentDialogItem?.name}</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus multiline rows={3} fullWidth size="small"
+                        label="Comment" placeholder="Add a comment..."
+                        value={commentDraft}
+                        onChange={e => setCommentDraft(e.target.value)}
+                        sx={{ mt: 1 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button size="small" onClick={() => setCommentDialogItem(null)}>Cancel</Button>
+                    <Button size="small" variant="contained" onClick={() => {
+                        updateField(commentDialogItem.id, 'notes', commentDraft);
+                        setCommentDialogItem(null);
+                    }}
+                        sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' } }}>
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Save / Cancel */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

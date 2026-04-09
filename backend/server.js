@@ -419,6 +419,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
         id: li.id || uuidv4(), name: li.name || '', careerLevel: li.careerLevel || '',
         supervisor: li.supervisor || '',
         allowanceCompoff: li.allowanceCompoff || 'Compoff', time: li.time || '',
+        notes: li.notes || '',
     }));
     saveData();
     res.json(team.lineItems);
