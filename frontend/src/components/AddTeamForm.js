@@ -88,6 +88,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                     careerLevel: e.careerLevel || '',
                     supervisor: e.supervisor || '',
                     allowanceCompoff: 'Compoff',
+                    time: '11:00 AM - ',
                 }));
                 await api.bulkAddLineItems(entryId, newTeam.id, items);
                 addToast(`Team "${teamName.trim()}" created with ${subordinates.length} resource(s) auto-added`, 'success');

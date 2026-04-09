@@ -40,7 +40,7 @@ export default function Header() {
                         <Typography variant="h6" fontWeight={800} sx={{ color: '#a5b4fc', letterSpacing: 1 }}>
                             MyISP
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#6366f1', fontWeight: 500, letterSpacing: 0.5 }}>
+                        <Typography variant="h6" fontWeight={600} sx={{ color: '#6366f1', letterSpacing: 0.5 }}>
                             — myIntegrated Solution Platform
                         </Typography>
                     </Box>
