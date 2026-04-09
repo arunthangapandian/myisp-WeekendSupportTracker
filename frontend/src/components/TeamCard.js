@@ -16,6 +16,7 @@ import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -30,13 +31,27 @@ import CloseIcon from '@mui/icons-material/Close';
  * Edit icon allows editing Team Name and Lead Name inline.
  */
 export default function TeamCard({ team, entryId, onRefresh }) {
-    const { navigateToTeam, addToast } = useAppContext();
+    const { navigateToTeam, addToast, employees } = useAppContext();
     const [expanded, setExpanded] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [editing, setEditing] = useState(false);
     const [editTeamName, setEditTeamName] = useState(team.teamName);
     const [editLeadName, setEditLeadName] = useState(team.leadName);
     const [saving, setSaving] = useState(false);
+
+    // Lead suggestions: CL 9 and below (supervisors/leads)
+    const leadOptions = employees.filter(e => {
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && cl <= 9;
+    });
+
+    const getLeadSuggestions = (input) => {
+        if (!input || input.length < 2) return [];
+        const q = input.toLowerCase();
+        return leadOptions
+            .filter(e => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q))
+            .slice(0, 10);
+    };
 
     const totalResources = (team.lineItems || []).length;
 
@@ -60,7 +75,39 @@ export default function TeamCard({ team, entryId, onRefresh }) {
                 teamName: editTeamName.trim(),
                 leadName: editLeadName.trim(),
             });
-            addToast(`Team "${editTeamName.trim()}" updated`, 'success');
+
+            // If lead changed, replace line items with new lead's subordinates
+            if (editLeadName.trim().toLowerCase() !== team.leadName.toLowerCase()) {
+                const leadRecord = employees.find(e =>
+                    e.name.toLowerCase() === editLeadName.trim().toLowerCase() ||
+                    e.id.toLowerCase() === editLeadName.trim().toLowerCase()
+                );
+                const supervisorId = leadRecord ? leadRecord.id.toLowerCase() : editLeadName.trim().toLowerCase();
+                const supervisorName = leadRecord ? leadRecord.name.toLowerCase() : editLeadName.trim().toLowerCase();
+
+                const subordinates = employees.filter(e => {
+                    const sv = (e.supervisor || '').toLowerCase().trim();
+                    if (!sv) return false;
+                    return sv === supervisorId || sv === supervisorName;
+                }).filter(e => {
+                    const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+                    return !isNaN(cl) && cl >= 9;
+                });
+
+                const items = subordinates.map(e => ({
+                    name: e.name,
+                    careerLevel: e.careerLevel || '',
+                    supervisor: e.supervisor || '',
+                    allowanceCompoff: 'Compoff',
+                    time: '11:00 AM - ',
+                    notes: '',
+                }));
+                await api.saveAllLineItems(entryId, team.id, items);
+                addToast(`Team updated — ${subordinates.length} resource(s) loaded for new lead`, 'success');
+            } else {
+                addToast(`Team "${editTeamName.trim()}" updated`, 'success');
+            }
+
             setEditing(false);
             onRefresh();
         } catch (err) { addToast(err.message, 'error'); }
@@ -88,9 +135,28 @@ export default function TeamCard({ team, entryId, onRefresh }) {
                             <TextField size="small" label="Team Name" value={editTeamName}
                                 onChange={e => setEditTeamName(e.target.value)}
                                 sx={{ minWidth: 160 }} />
-                            <TextField size="small" label="Lead Name" value={editLeadName}
-                                onChange={e => setEditLeadName(e.target.value)}
-                                sx={{ minWidth: 160 }} />
+                            <Autocomplete
+                                freeSolo
+                                size="small"
+                                options={getLeadSuggestions(editLeadName)}
+                                getOptionLabel={o => typeof o === 'string' ? o : o.name}
+                                inputValue={editLeadName}
+                                onInputChange={(_, val) => setEditLeadName(val)}
+                                onChange={(_, val) => { if (val && typeof val === 'object') setEditLeadName(val.name); }}
+                                filterOptions={x => x}
+                                renderOption={(props, o) => (
+                                    <li {...props} key={o.id}>
+                                        <Box>
+                                            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
+                                            <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}{o.supervisor ? ` • ${o.supervisor}` : ''}</Typography>
+                                        </Box>
+                                    </li>
+                                )}
+                                renderInput={(params) => (
+                                    <TextField {...params} size="small" label="Lead Name" placeholder="Type 2+ chars" sx={{ minWidth: 200 }} />
+                                )}
+                                sx={{ minWidth: 200 }}
+                            />
                             <IconButton size="small" color="success" onClick={handleEditSave}
                                 disabled={saving} title="Save">
                                 <CheckIcon fontSize="small" />
