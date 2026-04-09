@@ -64,18 +64,21 @@ function loadDataFromFile() {
     return null;
 }
 
-async function loadDataFromDB() {
+async function loadDataFromDB(retries = 3) {
     if (!pool) return null;
-    try {
-        const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs','resourceUploadHistory')");
-        const data = { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
-        res.rows.forEach(row => { data[row.key] = row.value; });
-        console.log(`Loaded ${Object.keys(data.entries).length} entries from PostgreSQL`);
-        return data;
-    } catch (err) {
-        console.error('Failed to load from PostgreSQL:', err.message);
-        return null;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs','resourceUploadHistory')");
+            const data = { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
+            res.rows.forEach(row => { data[row.key] = row.value; });
+            console.log(`Loaded ${Object.keys(data.entries).length} entries, ${(data.employees || []).length} employees from PostgreSQL`);
+            return data;
+        } catch (err) {
+            console.error(`PostgreSQL load attempt ${attempt}/${retries} failed:`, err.message);
+            if (attempt < retries) await new Promise(r => setTimeout(r, 2000 * attempt));
+        }
     }
+    return null;
 }
 
 function saveData() {
@@ -152,25 +155,24 @@ const employeeDirectory = [
 // ROUTES
 // ══════════════════════════════════════════════════════════════
 
-// Auth validation – check if enterprise ID is in the allowed list
+// Auth validation – accept any non-empty enterprise ID
 app.post('/api/auth/validate', (req, res) => {
     const { empId } = req.body;
     if (!empId) return res.status(400).json({ error: 'Employee ID is required' });
     const id = empId.trim().toLowerCase();
-    const allowed = allowedUsers.includes(id);
-    if (!allowed) return res.status(403).json({ error: 'Access denied. You are not authorised to access this application.' });
+    if (!id) return res.status(400).json({ error: 'Employee ID is required' });
     res.json({ valid: true, empId: id });
 });
 
 app.get('/api/options/release-owners', (_r, res) => res.json(releaseOwners));
 app.get('/api/options/career-levels', (_r, res) => res.json(careerLevels));
 
-// Employee lookup by ID or name for career level
+// Employee lookup by ID or name for career level — uses the live uploaded list
 app.get('/api/options/employee-lookup', (req, res) => {
     const q = (req.query.q || '').trim().toLowerCase();
     if (!q) return res.json(null);
-    const match = employeeDirectory.find(e =>
-        e.id.toLowerCase() === q || e.name.toLowerCase() === q);
+    const match = employees.find(e =>
+        (e.id || '').toLowerCase() === q || (e.name || '').toLowerCase() === q);
     res.json(match || null);
 });
 app.get('/api/options/employees', (_r, res) => res.json(employees));
@@ -644,9 +646,8 @@ async function startServer() {
     employees = data.employees || [];
     resourceUploadHistory = data.resourceUploadHistory || [];
 
-    if (!employees || employees.length === 0) {
-        employees = [...employeeDirectory];
-    }
+    // If employees is still empty (no resource list uploaded yet), start with empty —
+    // do NOT fall back to the hardcoded sample list so uploaded data is never overwritten.
 
     // If employees are loaded but no upload history exists (e.g. uploaded before history tracking),
     // synthesize a record so the UI shows the currently active list
