@@ -115,17 +115,39 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
             // Don't overwrite local unsaved entries when server data refreshes
             if (hasUnsavedChanges()) return;
             const snap = JSON.parse(JSON.stringify(team.lineItems || []));
-            setLineItems(snap);
             setSavedSnapshot(JSON.parse(JSON.stringify(snap)));
+            // Apply default 11:00 AM login time for display if not already set
+            const withDefaults = snap.map(li => {
+                const { start, end } = (() => {
+                    if (!li.time || !li.time.includes('-')) return { start: '', end: '' };
+                    const parts = li.time.split('-').map(s => s.trim());
+                    return { start: parts[0] || '', end: parts[1] || '' };
+                })();
+                if (!start) {
+                    return { ...li, time: `11:00 AM - ${end}` };
+                }
+                return li;
+            });
+            setLineItems(withDefaults);
         }
     }, [team, hasUnsavedChanges]);
 
     useEffect(() => { syncFromServer(); }, [syncFromServer]);
 
     // Register unsaved-changes guard with AppContext navigation
-    const hasChanges = JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot);
+    // Normalize time for comparison: treat '11:00 AM - ' same as '' for unchanged items
+    const normalizeForCompare = (items) => items.map(li => {
+        const t = (li.time || '').trim();
+        const parts = t.split('-').map(s => s.trim());
+        const start = parts[0] || '';
+        const end = parts[1] || '';
+        // If only login is 11:00 AM default and logout is empty, treat as no time set
+        const normalizedTime = (start === '11:00 AM' && !end) ? '' : t;
+        return { ...li, time: normalizedTime };
+    });
+    const hasChanges = JSON.stringify(normalizeForCompare(lineItems)) !== JSON.stringify(normalizeForCompare(savedSnapshot));
     useEffect(() => {
-        registerUnsavedCheck(() => JSON.stringify(lineItems) !== JSON.stringify(savedSnapshot));
+        registerUnsavedCheck(() => JSON.stringify(normalizeForCompare(lineItems)) !== JSON.stringify(normalizeForCompare(savedSnapshot)));
         registerSaveCallback(handleSave);
         return () => { unregisterUnsavedCheck(); unregisterSaveCallback(); };
     }); // no deps — always reflects latest
