@@ -89,6 +89,7 @@ const api = {
 
     getExportUrl: (entryId) => `${BASE}/entries/${entryId}/export`,
     getTeamExportUrl: (entryId, teamId) => `${BASE}/entries/${entryId}/teams/${teamId}/export`,
+    getDialogExportUrl: (entryId, type) => `${BASE}/entries/${entryId}/dialog-export/${type}`,
 
     bulkAddTeams: (entryId, teams, createdBy) =>
         request(`${BASE}/entries/${entryId}/bulk-teams`, {

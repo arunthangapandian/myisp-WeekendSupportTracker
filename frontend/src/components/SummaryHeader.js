@@ -116,34 +116,23 @@ export default function SummaryHeader({ entry, onRefresh }) {
         e.target.value = '';
     };
 
-    /** Export dialog data as CSV */
-    const handleExportDialog = () => {
-        let csvRows = [];
-        if (dialogOpen === 'teams') {
-            csvRows.push(['#', 'Team Name', 'Lead', 'Members']);
-            teams.forEach((t, i) => csvRows.push([i + 1, t.teamName, t.leadName, (t.lineItems || []).length]));
-        } else if (dialogOpen === 'members') {
-            csvRows.push(['#', 'Name', 'Team', 'Lead', 'Time', 'Total Hours', 'Type']);
-            allItems.forEach((li, i) => csvRows.push([i + 1, li.name, li.teamName, li.leadName, li.time || '', calcTotalHoursCSV(li.time), li.allowanceCompoff]));
-        } else if (dialogOpen === 'allowance') {
-            csvRows.push(['#', 'Name', 'Career Level', 'Supervisor', 'Team', 'Lead', 'Login Time', 'Logout Time', 'Total Hours', 'Support type to be charged in myte']);
-            allowanceItems.forEach((li, i) => {
-                const totalHrs = calcTotalHoursCSV(li.time);
-                csvRows.push([i + 1, li.name, li.careerLevel || '', li.supervisor || '', li.teamName, li.leadName, getLoginTime(li.time), getLogoutTime(li.time), totalHrs, getSupportType(totalHrs)]);
-            });
-        } else if (dialogOpen === 'compoff') {
-            csvRows.push(['#', 'Name', 'Team', 'Lead', 'Time', 'Total Hours']);
-            compoffItems.forEach((li, i) => csvRows.push([i + 1, li.name, li.teamName, li.leadName, li.time || '', calcTotalHoursCSV(li.time)]));
+    /** Export dialog data as colorful Excel via backend */
+    const handleExportDialog = async () => {
+        try {
+            const url = api.getDialogExportUrl(entry.id, dialogOpen);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Export failed');
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `${dialogOpen}-${entry.date}.xlsx`;
+            a.click();
+            URL.revokeObjectURL(blobUrl);
+            addToast('Exported successfully', 'success');
+        } catch (err) {
+            addToast(err.message || 'Export failed', 'error');
         }
-        const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${dialogOpen}-${entry.date}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        addToast('Exported successfully', 'success');
     };
 
     const renderDialogContent = () => {
