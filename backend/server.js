@@ -603,14 +603,14 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
 
     // Column definitions
     sheet.columns = [
-        { header: 'Name',           key: 'name',          width: 28 },
-        { header: 'Career Level',   key: 'careerLevel',   width: 14 },
-        { header: 'Supervisor',     key: 'supervisor',    width: 22 },
-        { header: 'Login Time',     key: 'loginTime',     width: 14 },
-        { header: 'Logout Time',    key: 'logoutTime',    width: 14 },
-        { header: 'Total Hours',    key: 'totalHours',    width: 14 },
-        { header: 'Compoff/Allowance', key: 'type',       width: 20 },
-        { header: 'Lead',           key: 'lead',          width: 22 },
+        { header: 'Name', key: 'name', width: 28 },
+        { header: 'Career Level', key: 'careerLevel', width: 14 },
+        { header: 'Supervisor', key: 'supervisor', width: 22 },
+        { header: 'Login Time', key: 'loginTime', width: 14 },
+        { header: 'Logout Time', key: 'logoutTime', width: 14 },
+        { header: 'Total Hours', key: 'totalHours', width: 14 },
+        { header: 'Compoff/Allowance', key: 'type', width: 20 },
+        { header: 'Lead', key: 'lead', width: 22 },
     ];
 
     // Header row styling — dark indigo bg, white bold text
@@ -631,23 +631,23 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
     // Row colours — alternating
     const rowColors = ['FFEEF2FF', 'FFF5F3FF'];
     const typeColors = { 'Allowance': 'FF065F46', 'Compoff': 'FF78350F' };
-    const typeBg    = { 'Allowance': 'FFD1FAE5', 'Compoff': 'FFFEF3C7' };
+    const typeBg = { 'Allowance': 'FFD1FAE5', 'Compoff': 'FFFEF3C7' };
 
     team.lineItems.forEach((li, idx) => {
         const parts = (li.time || '').split('-').map(s => s.trim());
-        const loginTime  = parts[0] || '';
+        const loginTime = parts[0] || '';
         const logoutTime = parts[1] || '';
         const totalHours = calcTotalHoursServer(li.time || '');
 
         const row = sheet.addRow({
-            name:        li.name || '',
+            name: li.name || '',
             careerLevel: li.careerLevel || '',
-            supervisor:  li.supervisor || '',
+            supervisor: li.supervisor || '',
             loginTime,
             logoutTime,
             totalHours,
-            type:        li.allowanceCompoff || '',
-            lead:        team.leadName || '',
+            type: li.allowanceCompoff || '',
+            lead: team.leadName || '',
         });
 
         const bgColor = rowColors[idx % 2];
@@ -655,10 +655,10 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
             cell.alignment = { vertical: 'middle', wrapText: false };
             cell.border = {
-                top:    { style: 'hair', color: { argb: 'FFD1D5DB' } },
+                top: { style: 'hair', color: { argb: 'FFD1D5DB' } },
                 bottom: { style: 'hair', color: { argb: 'FFD1D5DB' } },
-                left:   { style: 'hair', color: { argb: 'FFD1D5DB' } },
-                right:  { style: 'hair', color: { argb: 'FFD1D5DB' } },
+                left: { style: 'hair', color: { argb: 'FFD1D5DB' } },
+                right: { style: 'hair', color: { argb: 'FFD1D5DB' } },
             };
             // Highlight the type cell
             if (colNum === 7 && li.allowanceCompoff) {
