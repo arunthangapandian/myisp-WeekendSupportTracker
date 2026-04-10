@@ -61,6 +61,12 @@ export default function Sidebar() {
         }).catch(() => { });
     }, []);
 
+    // Release owners: career level 9 and below only
+    const ownerOptions = employees.filter(e => {
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && cl <= 9;
+    });
+
     // Load deleted items count
     useEffect(() => {
         const loadCount = async () => {
@@ -135,8 +141,11 @@ export default function Sidebar() {
             return;
         }
         setDateError('');
-        // Always validate against the latest employee list via ref
-        const empList = employeesRef.current;
+        // Always validate against the latest employee list via ref (career level 9 and below only)
+        const empList = employeesRef.current.filter(e => {
+            const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+            return !isNaN(cl) && cl <= 9;
+        });
         if (empList.length > 0) {
             const valid = empList.some(emp =>
                 emp.name.toLowerCase() === editOwner.trim().toLowerCase() ||
@@ -256,7 +265,7 @@ export default function Sidebar() {
                                                 <Autocomplete
                                                     freeSolo
                                                     size="small"
-                                                    options={employees}
+                                                    options={ownerOptions}
                                                     getOptionLabel={o => typeof o === 'string' ? o : o.name}
                                                     inputValue={editOwner}
                                                     onInputChange={(_, val) => { setEditOwner(val); setOwnerError(''); }}

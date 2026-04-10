@@ -629,10 +629,10 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
     }
     headerRow.height = 22;
 
-    // Row colours — alternating
-    const rowColors = ['FFEEF2FF', 'FFF5F3FF'];
+    // Row colours — entire row coloured by Allowance/Compoff type
+    const rowBgByType = { 'Allowance': 'FFD1FAE5', 'Compoff': 'FFFEF3C7' };
+    const rowFallbackColors = ['FFEEF2FF', 'FFF5F3FF'];
     const typeColors = { 'Allowance': 'FF065F46', 'Compoff': 'FF78350F' };
-    const typeBg = { 'Allowance': 'FFD1FAE5', 'Compoff': 'FFFEF3C7' };
 
     team.lineItems.forEach((li, idx) => {
         const parts = (li.time || '').split('-').map(s => s.trim());
@@ -651,7 +651,7 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
             lead: team.leadName || '',
         });
 
-        const bgColor = rowColors[idx % 2];
+        const bgColor = rowBgByType[li.allowanceCompoff] || rowFallbackColors[idx % 2];
         row.eachCell({ includeEmpty: true }, (cell, colNum) => {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
             cell.alignment = { vertical: 'middle', wrapText: false };
@@ -661,9 +661,8 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
                 left: { style: 'hair', color: { argb: 'FFD1D5DB' } },
                 right: { style: 'hair', color: { argb: 'FFD1D5DB' } },
             };
-            // Highlight the type cell
+            // Bold + coloured text on the type cell
             if (colNum === 7 && li.allowanceCompoff) {
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: typeBg[li.allowanceCompoff] || bgColor } };
                 cell.font = { bold: true, color: { argb: typeColors[li.allowanceCompoff] || 'FF000000' } };
             }
         });

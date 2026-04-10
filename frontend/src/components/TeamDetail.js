@@ -317,6 +317,16 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         if (et) time = ` - ${et}`;
                     }
 
+                    // Default login time to 11:00 AM if no start time is present
+                    {
+                        const dashIdx = time.indexOf('-');
+                        const startPart = dashIdx >= 0 ? time.substring(0, dashIdx).trim() : time.trim();
+                        if (!startPart) {
+                            const endPart = dashIdx >= 0 ? time.substring(dashIdx + 1).trim() : '';
+                            time = endPart ? `11:00 AM - ${endPart}` : `11:00 AM - `;
+                        }
+                    }
+
                     const existingIdx = lineItems.findIndex(li =>
                         li.name.toLowerCase() === name.toLowerCase());
                     if (existingIdx !== -1) {
