@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { formatDateLabel } from '../utils/helpers';
+import { formatDateLabel, getTodayStr } from '../utils/helpers';
 import api from '../utils/api';
 import ConfirmDialog from './ConfirmDialog';
 import Box from '@mui/material/Box';
@@ -49,10 +49,16 @@ export default function Sidebar() {
     const [editDate, setEditDate] = useState('');
     const [editOwner, setEditOwner] = useState('');
     const [ownerError, setOwnerError] = useState('');
+    const [dateError, setDateError] = useState('');
     const [employees, setEmployees] = useState([]);
+    const employeesRef = useRef([]);
 
     useEffect(() => {
-        api.getEmployees().then(list => setEmployees(list || [])).catch(() => { });
+        api.getEmployees().then(list => {
+            const loaded = list || [];
+            setEmployees(loaded);
+            employeesRef.current = loaded;
+        }).catch(() => { });
     }, []);
 
     // Load deleted items count
@@ -114,15 +120,25 @@ export default function Sidebar() {
         setEditDate('');
         setEditOwner('');
         setOwnerError('');
+        setDateError('');
     };
 
     const saveEditing = async (e) => {
         if (e) e.stopPropagation();
         if (!editOwner.trim()) { addToast('Release Owner cannot be empty', 'error'); return; }
         if (!editDate) { addToast('Date cannot be empty', 'error'); return; }
-        // Validate against resource list if employees are loaded
-        if (employees.length > 0) {
-            const valid = employees.some(emp =>
+        // Future-date validation
+        const today = getTodayStr();
+        if (editDate < today) {
+            setDateError('Please enter a future date');
+            addToast('Please enter a future date', 'error');
+            return;
+        }
+        setDateError('');
+        // Always validate against the latest employee list via ref
+        const empList = employeesRef.current;
+        if (empList.length > 0) {
+            const valid = empList.some(emp =>
                 emp.name.toLowerCase() === editOwner.trim().toLowerCase() ||
                 emp.id.toLowerCase() === editOwner.trim().toLowerCase()
             );
@@ -266,9 +282,12 @@ export default function Sidebar() {
                                                     onClick={e => e.stopPropagation()}
                                                 />
                                                 <TextField fullWidth size="small" type="date" label="Date" value={editDate}
-                                                    onChange={e => setEditDate(e.target.value)}
+                                                    onChange={e => { setEditDate(e.target.value); setDateError(''); }}
                                                     onClick={e => e.stopPropagation()}
                                                     InputLabelProps={{ shrink: true }}
+                                                    inputProps={{ min: getTodayStr() }}
+                                                    error={!!dateError}
+                                                    helperText={dateError}
                                                     sx={{
                                                         mb: 0.8, '& .MuiInputBase-input': { fontSize: 12, py: 0.5, color: '#e0e7ff' }, '& .MuiInputLabel-root': { fontSize: 11 },
                                                         '& input::-webkit-calendar-picker-indicator': { filter: 'invert(1)', cursor: 'pointer' }

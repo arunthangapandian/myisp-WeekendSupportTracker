@@ -352,7 +352,23 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         e.target.value = '';
     };
 
-    const handleExport = () => { window.open(api.getTeamExportUrl(entryId, teamId), '_blank'); };
+    const handleExport = async () => {
+        try {
+            const url = api.getTeamExportUrl(entryId, teamId);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Export failed');
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `${(team?.teamName || 'team').replace(/[\\/:*?"<>|]/g, '_')}-${currentEntry?.date || 'export'}.xlsx`;
+            a.click();
+            URL.revokeObjectURL(blobUrl);
+            addToast('Exported successfully', 'success');
+        } catch (err) {
+            addToast(err.message || 'Export failed', 'error');
+        }
+    };
     const filteredItems = lineItems.filter(li => {
         if (filters.name && !li.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
         if (filters.careerLevel && !(li.careerLevel || '').toLowerCase().includes(filters.careerLevel.toLowerCase())) return false;

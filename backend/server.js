@@ -613,9 +613,10 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
         { header: 'Lead', key: 'lead', width: 22 },
     ];
 
-    // Header row styling — dark indigo bg, white bold text
+    // Header row styling — explicit loop ensures all 8 columns (including Lead) get styled
     const headerRow = sheet.getRow(1);
-    headerRow.eachCell(cell => {
+    for (let col = 1; col <= sheet.columns.length; col++) {
+        const cell = headerRow.getCell(col);
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3730A3' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
@@ -625,7 +626,7 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
             left: { style: 'thin', color: { argb: 'FF4F46E5' } },
             right: { style: 'thin', color: { argb: 'FF4F46E5' } },
         };
-    });
+    }
     headerRow.height = 22;
 
     // Row colours — alternating
