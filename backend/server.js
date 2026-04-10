@@ -685,8 +685,8 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
     sheet.columns = columns;
 
     const ALLOWANCE_BG = 'FFD1FAE5';
-    const COMPOFF_BG   = 'FFFEF3C7';
-    const ALT          = ['FFEEF2FF', 'FFF5F3FF'];
+    const COMPOFF_BG = 'FFFEF3C7';
+    const ALT = ['FFEEF2FF', 'FFF5F3FF'];
 
     const rowDataList = team.lineItems.map(li => {
         const parts = (li.time || '').split('-').map(s => s.trim());
@@ -720,13 +720,13 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
     const exportType = req.params.type;
 
     const ALLOWANCE_BG = 'FFD1FAE5';
-    const COMPOFF_BG   = 'FFFEF3C7';
-    const ALT          = ['FFEEF2FF', 'FFF5F3FF'];
+    const COMPOFF_BG = 'FFFEF3C7';
+    const ALT = ['FFEEF2FF', 'FFF5F3FF'];
 
-    const teams    = entry.teams || [];
+    const teams = entry.teams || [];
     const allItems = teams.flatMap(t => (t.lineItems || []).map(li => ({ ...li, teamName: t.teamName, leadName: t.leadName })));
     const allowanceItems = allItems.filter(li => li.allowanceCompoff === 'Allowance');
-    const compoffItems   = allItems.filter(li => li.allowanceCompoff === 'Compoff');
+    const compoffItems = allItems.filter(li => li.allowanceCompoff === 'Compoff');
 
     let sheetName, columns, rowDataList, getRowBg;
 
