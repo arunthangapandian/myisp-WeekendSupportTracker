@@ -108,6 +108,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const [filters, setFilters] = useState({ name: '', careerLevel: '', supervisor: '', loginTime: '', logoutTime: '', allowanceCompoff: '' });
     const [commentDialogItem, setCommentDialogItem] = useState(null); // { id, notes }
     const [commentDraft, setCommentDraft] = useState('');
+    const [lineErrors, setLineErrors] = useState({}); // { [id]: { start?: bool, end?: bool } }
     const fileInputRef = useRef(null);
 
     const syncFromServer = useCallback(() => {
@@ -231,6 +232,20 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     };
 
     const handleSave = async () => {
+        // Validate all time fields before saving
+        const newErrors = {};
+        lineItems.forEach(li => {
+            const { start, end } = parseTimeParts(li.time);
+            const startErr = !!start && isNaN(parseTimeToMinutes(start));
+            const endErr   = !!end   && isNaN(parseTimeToMinutes(end));
+            if (startErr || endErr) newErrors[li.id] = { start: startErr, end: endErr };
+        });
+        if (Object.keys(newErrors).length > 0) {
+            setLineErrors(newErrors);
+            addToast(`Invalid time in ${Object.keys(newErrors).length} row(s). Use HH:MM AM/PM format.`, 'error');
+            return false;
+        }
+        setLineErrors({});
         setSaving(true);
         try {
             const saved = await api.saveAllLineItems(entryId, teamId, lineItems);
@@ -246,6 +261,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
     const handleCancel = () => {
         setLineItems(JSON.parse(JSON.stringify(savedSnapshot)));
         setEditingId(null);
+        setLineErrors({});
         addToast('Changes discarded', 'info');
     };
 
@@ -538,7 +554,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                     {filteredItems.map((li, i) => {
                                         const { start, end } = parseTimeParts(li.time);
                                         return (
-                                            <TableRow key={li.id}>
+                                            <TableRow key={li.id} sx={lineErrors[li.id] ? { bgcolor: 'rgba(239,68,68,0.08)' } : {}}>
                                                 <TableCell sx={{ p: '4px 6px', fontSize: 11 }}>{lineItems.indexOf(li) + 1}</TableCell>
                                                 <TableCell sx={{ p: '4px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {editingId === li.id ? (
@@ -568,9 +584,19 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                     <Autocomplete
                                                         freeSolo size="small" options={TIME_OPTIONS}
                                                         value={start || ''}
-                                                        onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(val || '', end))}
+                                                        onInputChange={(_, val) => {
+                                                            updateField(li.id, 'time', buildTimeStr(val || '', end));
+                                                            setLineErrors(prev => {
+                                                                const cur = prev[li.id] || {};
+                                                                const hasErr = !!val && isNaN(parseTimeToMinutes(val));
+                                                                const next = { ...cur, start: hasErr };
+                                                                if (!hasErr && !cur.end) { const { [li.id]: _, ...rest } = prev; return rest; }
+                                                                return { ...prev, [li.id]: next };
+                                                            });
+                                                        }}
                                                         renderInput={(params) => (
                                                             <TextField {...params} size="small" placeholder="HH:MM AM"
+                                                                error={!!lineErrors[li.id]?.start}
                                                                 inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
                                                                 InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
@@ -583,9 +609,19 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                     <Autocomplete
                                                         freeSolo size="small" options={TIME_OPTIONS}
                                                         value={end || ''}
-                                                        onInputChange={(_, val) => updateField(li.id, 'time', buildTimeStr(start, val || ''))}
+                                                        onInputChange={(_, val) => {
+                                                            updateField(li.id, 'time', buildTimeStr(start, val || ''));
+                                                            setLineErrors(prev => {
+                                                                const cur = prev[li.id] || {};
+                                                                const hasErr = !!val && isNaN(parseTimeToMinutes(val));
+                                                                const next = { ...cur, end: hasErr };
+                                                                if (!hasErr && !cur.start) { const { [li.id]: _, ...rest } = prev; return rest; }
+                                                                return { ...prev, [li.id]: next };
+                                                            });
+                                                        }}
                                                         renderInput={(params) => (
                                                             <TextField {...params} size="small" placeholder="HH:MM AM"
+                                                                error={!!lineErrors[li.id]?.end}
                                                                 inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
                                                                 InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
@@ -661,6 +697,12 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                 </DialogActions>
             </Dialog>
 
+            {/* Validation error summary */}
+            {Object.keys(lineErrors).length > 0 && (
+                <Alert severity="error" sx={{ mb: 1.5 }}>
+                    Invalid time in {Object.keys(lineErrors).length} row(s) — use HH:MM AM/PM format (e.g. 11:00 AM, 6:00 PM).
+                </Alert>
+            )}
             {/* Save / Cancel */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave}
