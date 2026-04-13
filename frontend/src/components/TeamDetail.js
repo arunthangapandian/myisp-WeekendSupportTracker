@@ -582,51 +582,35 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 2px' }}>
                                                     <Autocomplete
-                                                        freeSolo size="small" options={TIME_OPTIONS}
-                                                        value={start || ''}
-                                                        onInputChange={(_, val) => {
+                                                        size="small" options={TIME_OPTIONS}
+                                                        value={start || null}
+                                                        onChange={(_, val) => {
                                                             updateField(li.id, 'time', buildTimeStr(val || '', end));
-                                                            setLineErrors(prev => {
-                                                                const cur = prev[li.id] || {};
-                                                                const hasErr = !!val && isNaN(parseTimeToMinutes(val));
-                                                                const next = { ...cur, start: hasErr };
-                                                                if (!hasErr && !cur.end) { const { [li.id]: _, ...rest } = prev; return rest; }
-                                                                return { ...prev, [li.id]: next };
-                                                            });
+                                                            setLineErrors(prev => { const { [li.id]: cur, ...rest } = prev; return !cur?.end ? rest : { ...prev, [li.id]: { ...cur, start: false } }; });
                                                         }}
                                                         renderInput={(params) => (
                                                             <TextField {...params} size="small" placeholder="HH:MM AM"
-                                                                error={!!lineErrors[li.id]?.start}
                                                                 inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
                                                                 InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
                                                         ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
-                                                        disableClearable
                                                         sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 2px' }}>
                                                     <Autocomplete
-                                                        freeSolo size="small" options={TIME_OPTIONS}
-                                                        value={end || ''}
-                                                        onInputChange={(_, val) => {
+                                                        size="small" options={TIME_OPTIONS}
+                                                        value={end || null}
+                                                        onChange={(_, val) => {
                                                             updateField(li.id, 'time', buildTimeStr(start, val || ''));
-                                                            setLineErrors(prev => {
-                                                                const cur = prev[li.id] || {};
-                                                                const hasErr = !!val && isNaN(parseTimeToMinutes(val));
-                                                                const next = { ...cur, end: hasErr };
-                                                                if (!hasErr && !cur.start) { const { [li.id]: _, ...rest } = prev; return rest; }
-                                                                return { ...prev, [li.id]: next };
-                                                            });
+                                                            setLineErrors(prev => { const { [li.id]: cur, ...rest } = prev; return !cur?.start ? rest : { ...prev, [li.id]: { ...cur, end: false } }; });
                                                         }}
                                                         renderInput={(params) => (
                                                             <TextField {...params} size="small" placeholder="HH:MM AM"
-                                                                error={!!lineErrors[li.id]?.end}
                                                                 inputProps={{ ...params.inputProps, style: { padding: '3px 4px', fontSize: 11 } }}
                                                                 InputProps={{ ...params.InputProps, sx: { fontSize: 11, pr: '4px !important' } }} />
                                                         )}
                                                         ListboxProps={{ sx: { maxHeight: 200, fontSize: 11 } }}
-                                                        disableClearable
                                                         sx={{ width: '100%' }}
                                                     />
                                                 </TableCell>
