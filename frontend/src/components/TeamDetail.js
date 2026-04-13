@@ -237,7 +237,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         lineItems.forEach(li => {
             const { start, end } = parseTimeParts(li.time);
             const startErr = !!start && isNaN(parseTimeToMinutes(start));
-            const endErr   = !!end   && isNaN(parseTimeToMinutes(end));
+            const endErr = !!end && isNaN(parseTimeToMinutes(end));
             if (startErr || endErr) newErrors[li.id] = { start: startErr, end: endErr };
         });
         if (Object.keys(newErrors).length > 0) {
