@@ -156,6 +156,16 @@ const employeeDirectory = [
 // ROUTES
 // ══════════════════════════════════════════════════════════════
 
+// Hardcoded career level map – takes priority over uploaded employee list.
+// CL9 = Lead (restricted access). CL8 and below = full access.
+// Add/remove users here to control access levels without re-deploying a resource CSV.
+const HARDCODED_CAREER_LEVELS = {
+    'shini.vv': 9,
+    'vishnu.ramalingam': 9,
+    'srinivasan.selvam': 7,
+    'd.sampathkumar': 8,
+};
+
 // Auth validation – validates enterprise ID and returns career level
 app.post('/api/auth/validate', (req, res) => {
     const { empId } = req.body;
@@ -163,13 +173,22 @@ app.post('/api/auth/validate', (req, res) => {
     const id = empId.trim().toLowerCase();
     if (!id) return res.status(400).json({ error: 'Employee ID is required' });
 
-    // Look up career level from the loaded employee list
+    // Check hardcoded map first (reliable, CSV-independent)
+    if (Object.prototype.hasOwnProperty.call(HARDCODED_CAREER_LEVELS, id)) {
+        const hardcodedCl = HARDCODED_CAREER_LEVELS[id];
+        if (hardcodedCl >= 10) {
+            return res.status(403).json({ error: 'Access denied. Career level 9 and below only.' });
+        }
+        return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
+    }
+
+    // Fall back to uploaded employee list
     const emp = employees.find(e =>
         (e.id || '').toLowerCase() === id || (e.name || '').toLowerCase() === id
     );
     const cl = emp ? parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10) : NaN;
 
-    // Block access for career level 10 and above (or unknown if employees list is loaded)
+    // Block access for career level 10 and above when employee list is loaded
     if (employees.length > 0 && emp && !isNaN(cl) && cl >= 10) {
         return res.status(403).json({ error: 'Access denied. Career level 9 and below only.' });
     }
