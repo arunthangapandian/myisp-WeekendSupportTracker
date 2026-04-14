@@ -158,17 +158,17 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                         ➕ Add Team
                     </Typography>
                     {!isLeadOnly && (
-                    <Tooltip title="Upload Teams from Excel (.xlsx, .csv) — columns: Team Name, Lead Name">
-                        <Button size="small" startIcon={<UploadFileIcon />}
-                            onClick={() => fileInputRef.current?.click()}
-                            sx={{ textTransform: 'none', color: '#a5b4fc' }}>
-                            Upload Teams
-                        </Button>
-                    </Tooltip>
+                        <Tooltip title="Upload Teams from Excel (.xlsx, .csv) — columns: Team Name, Lead Name">
+                            <Button size="small" startIcon={<UploadFileIcon />}
+                                onClick={() => fileInputRef.current?.click()}
+                                sx={{ textTransform: 'none', color: '#a5b4fc' }}>
+                                Upload Teams
+                            </Button>
+                        </Tooltip>
                     )}
                     {!isLeadOnly && (
-                    <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
-                        onChange={handleExcelUpload} aria-label="Upload teams from Excel" />
+                        <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
+                            onChange={handleExcelUpload} aria-label="Upload teams from Excel" />
                     )}
                 </Box>
                 <form onSubmit={handleSubmit} noValidate>
@@ -179,30 +179,30 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                         {isLeadOnly ? (
                             <TextField size="small" label="Lead Name" value={leadName} disabled />
                         ) : (
-                        <Autocomplete
-                            freeSolo
-                            size="small"
-                            options={getLeadSuggestions(leadName)}
-                            getOptionLabel={o => typeof o === 'string' ? o : o.name}
-                            inputValue={leadName}
-                            onInputChange={(_, val) => { setLeadName(val); setError(''); }}
-                            onChange={(_, val) => {
-                                if (val && typeof val === 'object') setLeadName(val.name);
-                            }}
-                            filterOptions={(x) => x}
-                            renderOption={(props, o) => (
-                                <li {...props} key={o.id}>
-                                    <Box>
-                                        <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
-                                        {o.careerLevel && <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}</Typography>}
-                                    </Box>
-                                </li>
-                            )}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Lead Name *" placeholder="Type 2+ chars to search" />
-                            )}
-                            ListboxProps={{ sx: { maxHeight: 240 } }}
-                        />
+                            <Autocomplete
+                                freeSolo
+                                size="small"
+                                options={getLeadSuggestions(leadName)}
+                                getOptionLabel={o => typeof o === 'string' ? o : o.name}
+                                inputValue={leadName}
+                                onInputChange={(_, val) => { setLeadName(val); setError(''); }}
+                                onChange={(_, val) => {
+                                    if (val && typeof val === 'object') setLeadName(val.name);
+                                }}
+                                filterOptions={(x) => x}
+                                renderOption={(props, o) => (
+                                    <li {...props} key={o.id}>
+                                        <Box>
+                                            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
+                                            {o.careerLevel && <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}</Typography>}
+                                        </Box>
+                                    </li>
+                                )}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Lead Name *" placeholder="Type 2+ chars to search" />
+                                )}
+                                ListboxProps={{ sx: { maxHeight: 240 } }}
+                            />
                         )}
                         <Button type="submit" variant="contained" startIcon={<AddIcon />}
                             disabled={loading} size="small"

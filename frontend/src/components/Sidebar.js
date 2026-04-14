@@ -223,12 +223,12 @@ export default function Sidebar() {
                 <>
                     <Box sx={{ px: 1.5, py: 1.5 }}>
                         {!isLeadOnly && (
-                        <Button variant="contained" fullWidth size="small"
-                            startIcon={<ComputerIcon />}
-                            onClick={() => setView('create')}
-                            sx={{ textTransform: 'none', bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, fontSize: 12 }}>
-                            Create New Release
-                        </Button>
+                            <Button variant="contained" fullWidth size="small"
+                                startIcon={<ComputerIcon />}
+                                onClick={() => setView('create')}
+                                sx={{ textTransform: 'none', bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, fontSize: 12 }}>
+                                Create New Release
+                            </Button>
                         )}
                     </Box>
                     <Divider sx={{ borderColor: '#312e81' }} />
@@ -337,20 +337,20 @@ export default function Sidebar() {
                                                 />
                                                 <Tooltip title="Edit date/owner">
                                                     {!isLeadOnly && (
-                                                    <IconButton size="small" edge="end"
-                                                        onClick={(e) => startEditing(entry, e)}
-                                                        sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#818cf8', mr: 0.2 }}>
-                                                        <EditIcon sx={{ fontSize: 14 }} />
-                                                    </IconButton>
+                                                        <IconButton size="small" edge="end"
+                                                            onClick={(e) => startEditing(entry, e)}
+                                                            sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#818cf8', mr: 0.2 }}>
+                                                            <EditIcon sx={{ fontSize: 14 }} />
+                                                        </IconButton>
                                                     )}
                                                 </Tooltip>
                                                 {!isLeadOnly && (
-                                                <IconButton size="small" edge="end"
-                                                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry); }}
-                                                    aria-label={`Delete ${formatDateLabel(entry.date)}`}
-                                                    sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#c7d2fe' }}>
-                                                    <DeleteIcon sx={{ fontSize: 14 }} />
-                                                </IconButton>
+                                                    <IconButton size="small" edge="end"
+                                                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry); }}
+                                                        aria-label={`Delete ${formatDateLabel(entry.date)}`}
+                                                        sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#c7d2fe' }}>
+                                                        <DeleteIcon sx={{ fontSize: 14 }} />
+                                                    </IconButton>
                                                 )}
                                             </ListItemButton>
                                         )
@@ -363,25 +363,25 @@ export default function Sidebar() {
                     {/* Deleted Items Section — hidden for CL9 leads */}
                     {!isLeadOnly && <Divider sx={{ borderColor: '#312e81' }} />}
                     {!isLeadOnly && (
-                    <Box sx={{ px: 1.5, py: 1.5 }}>
-                        <Button fullWidth size="small" variant={view === 'deleted' ? 'contained' : 'outlined'}
-                            startIcon={
-                                <Badge badgeContent={deletedCount} color="error" max={99}
-                                    sx={{ '& .MuiBadge-badge': { fontSize: 10, minWidth: 16, height: 16 } }}>
-                                    <DeleteSweepIcon />
-                                </Badge>
-                            }
-                            onClick={navigateToDeleted}
-                            sx={{
-                                textTransform: 'none', fontSize: 12, justifyContent: 'flex-start', pl: 2,
-                                color: view === 'deleted' ? '#fff' : '#e0e7ff',
-                                borderColor: '#4f46e5',
-                                bgcolor: view === 'deleted' ? '#4f46e5' : 'transparent',
-                                '&:hover': { bgcolor: '#312e81', borderColor: '#6366f1' },
-                            }}>
-                            Deleted Items
-                        </Button>
-                    </Box>
+                        <Box sx={{ px: 1.5, py: 1.5 }}>
+                            <Button fullWidth size="small" variant={view === 'deleted' ? 'contained' : 'outlined'}
+                                startIcon={
+                                    <Badge badgeContent={deletedCount} color="error" max={99}
+                                        sx={{ '& .MuiBadge-badge': { fontSize: 10, minWidth: 16, height: 16 } }}>
+                                        <DeleteSweepIcon />
+                                    </Badge>
+                                }
+                                onClick={navigateToDeleted}
+                                sx={{
+                                    textTransform: 'none', fontSize: 12, justifyContent: 'flex-start', pl: 2,
+                                    color: view === 'deleted' ? '#fff' : '#e0e7ff',
+                                    borderColor: '#4f46e5',
+                                    bgcolor: view === 'deleted' ? '#4f46e5' : 'transparent',
+                                    '&:hover': { bgcolor: '#312e81', borderColor: '#6366f1' },
+                                }}>
+                                Deleted Items
+                            </Button>
+                        </Box>
                     )}
                 </>
             )}

@@ -325,37 +325,37 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                 target="_blank" rel="noreferrer" />
                         </Tooltip>
                         {!isLeadOnly && (
-                        <Tooltip title="Re-upload Sanity Sheet">
-                            <IconButton size="small" onClick={() => reuploadInputRef.current?.click()}
-                                sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
-                                <CachedIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
+                            <Tooltip title="Re-upload Sanity Sheet">
+                                <IconButton size="small" onClick={() => reuploadInputRef.current?.click()}
+                                    sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
+                                    <CachedIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
                         )}
                         {!isLeadOnly && (
-                        <input ref={reuploadInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
-                            onChange={handleSanityUpload} aria-label="Re-upload sanity sheet" />
+                            <input ref={reuploadInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
+                                onChange={handleSanityUpload} aria-label="Re-upload sanity sheet" />
                         )}
                     </Box>
                 ) : (
                     !isLeadOnly ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Tooltip title="Upload Sanity Sheet (.xlsx, .xls, .csv, .pdf)">
-                            <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />}
-                                onClick={() => fileInputRef.current?.click()}
-                                sx={{ textTransform: 'none', ml: 0.5, color: '#a5b4fc', borderColor: '#4f46e5' }}>
-                                Upload Sanity Sheet
-                            </Button>
-                        </Tooltip>
-                        <Tooltip title="Re-upload Sanity Sheet">
-                            <IconButton size="small" onClick={() => fileInputRef.current?.click()}
-                                sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
-                                <CachedIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
-                            onChange={handleSanityUpload} aria-label="Upload sanity sheet" />
-                    </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Tooltip title="Upload Sanity Sheet (.xlsx, .xls, .csv, .pdf)">
+                                <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    sx={{ textTransform: 'none', ml: 0.5, color: '#a5b4fc', borderColor: '#4f46e5' }}>
+                                    Upload Sanity Sheet
+                                </Button>
+                            </Tooltip>
+                            <Tooltip title="Re-upload Sanity Sheet">
+                                <IconButton size="small" onClick={() => fileInputRef.current?.click()}
+                                    sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
+                                    <CachedIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
+                                onChange={handleSanityUpload} aria-label="Upload sanity sheet" />
+                        </Box>
                     ) : null
                 )}
             </Box>

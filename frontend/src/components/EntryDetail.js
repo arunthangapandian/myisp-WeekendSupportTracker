@@ -108,21 +108,21 @@ export default function EntryDetail({ onRefresh }) {
                         History
                     </Button>
                     {!isLeadOnly && (
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<ListAltIcon />}
-                        onClick={navigateToResources}
-                        sx={{
-                            textTransform: 'none', fontWeight: 600, fontSize: 13,
-                            color: '#c084fc',
-                            borderColor: '#7c3aed',
-                            borderRadius: 1.5, px: 1.5,
-                            '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
-                        }}
-                    >
-                        Resources List
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<ListAltIcon />}
+                            onClick={navigateToResources}
+                            sx={{
+                                textTransform: 'none', fontWeight: 600, fontSize: 13,
+                                color: '#c084fc',
+                                borderColor: '#7c3aed',
+                                borderRadius: 1.5, px: 1.5,
+                                '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
+                            }}
+                        >
+                            Resources List
+                        </Button>
                     )}
                 </Box>
             </Box>
