@@ -40,19 +40,21 @@ export default function EntryDetail({ onRefresh }) {
                         <HomeIcon sx={{ fontSize: 15 }} />
                         <Typography sx={{ fontSize: 12, color: '#a5b4fc', fontWeight: 600 }}>Home</Typography>
                     </Box>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<ListAltIcon />}
-                        onClick={navigateToResources}
-                        sx={{
-                            textTransform: 'none', fontWeight: 600, fontSize: 13,
-                            color: '#c084fc', borderColor: '#7c3aed', borderRadius: 1.5, px: 1.5,
-                            '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
-                        }}
-                    >
-                        Resources List
-                    </Button>
+                    {!isLeadOnly && (
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<ListAltIcon />}
+                            onClick={navigateToResources}
+                            sx={{
+                                textTransform: 'none', fontWeight: 600, fontSize: 13,
+                                color: '#c084fc', borderColor: '#7c3aed', borderRadius: 1.5, px: 1.5,
+                                '&:hover': { bgcolor: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
+                            }}
+                        >
+                            Resources List
+                        </Button>
+                    )}
                 </Box>
                 <Box sx={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -61,10 +63,12 @@ export default function EntryDetail({ onRefresh }) {
                     <ComputerIcon sx={{ fontSize: 56, mb: 1, opacity: 0.4 }} />
                     <Typography variant="h6" sx={{ color: '#c7d2fe' }}>Welcome to Weekend Support Tracker</Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#a5b4fc' }}>Select an entry from the sidebar, or create a new one.</Typography>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setView('create')}
-                        sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
-                        Create New Release
-                    </Button>
+                    {!isLeadOnly && (
+                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setView('create')}
+                            sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
+                            Create New Release
+                        </Button>
+                    )}
                 </Box>
             </Box>
         );
