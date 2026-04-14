@@ -4,22 +4,45 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 /**
- * Authentication provider – stores empId in localStorage.
- * Login does NOT create any entries; only stores employee identity.
+ * Authentication provider – stores empId and careerLevel in localStorage.
+ * Career level 9 = Lead (restricted). Career level 8 and below = full access.
  */
 export function AuthProvider({ children }) {
     const [empId, setEmpId] = useState(() => localStorage.getItem('empId') || '');
+    const [careerLevel, setCareerLevel] = useState(() => {
+        const stored = localStorage.getItem('careerLevel');
+        return stored !== null ? parseInt(stored, 10) : null;
+    });
 
     useEffect(() => {
         if (empId) localStorage.setItem('empId', empId);
         else localStorage.removeItem('empId');
     }, [empId]);
 
-    const login = (id) => setEmpId(id.trim());
-    const logout = () => { setEmpId(''); localStorage.removeItem('empId'); sessionStorage.clear(); };
+    useEffect(() => {
+        if (careerLevel !== null) localStorage.setItem('careerLevel', String(careerLevel));
+        else localStorage.removeItem('careerLevel');
+    }, [careerLevel]);
+
+    /** Career level 9 = Lead: restricted view/edit access */
+    const isLeadOnly = careerLevel !== null && careerLevel === 9;
+    /** Career level 8 and below = full access */
+    const isFullAccess = careerLevel === null || careerLevel <= 8;
+
+    const login = (id, cl) => {
+        setEmpId(id.trim());
+        setCareerLevel(cl !== undefined && cl !== null ? parseInt(cl, 10) : null);
+    };
+    const logout = () => {
+        setEmpId('');
+        setCareerLevel(null);
+        localStorage.removeItem('empId');
+        localStorage.removeItem('careerLevel');
+        sessionStorage.clear();
+    };
 
     return (
-        <AuthContext.Provider value={{ empId, isLoggedIn: !!empId, login, logout }}>
+        <AuthContext.Provider value={{ empId, careerLevel, isLoggedIn: !!empId, isLeadOnly, isFullAccess, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

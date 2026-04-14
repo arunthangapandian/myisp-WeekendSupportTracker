@@ -21,12 +21,13 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
  * Excel should have columns: Team Name, Lead Name.
  */
 export default function AddTeamForm({ entryId, onTeamAdded }) {
-    const { empId } = useAuth();
+    const { empId, isLeadOnly } = useAuth();
     const { addToast, employees } = useAppContext();
     const fileInputRef = useRef(null);
 
     const [teamName, setTeamName] = useState('');
-    const [leadName, setLeadName] = useState('');
+    // CL9 lead: their own name is pre-set and cannot be changed
+    const [leadName, setLeadName] = useState(() => isLeadOnly ? empId : '');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -156,6 +157,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                     <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1, color: '#e0e7ff' }}>
                         ➕ Add Team
                     </Typography>
+                    {!isLeadOnly && (
                     <Tooltip title="Upload Teams from Excel (.xlsx, .csv) — columns: Team Name, Lead Name">
                         <Button size="small" startIcon={<UploadFileIcon />}
                             onClick={() => fileInputRef.current?.click()}
@@ -163,14 +165,20 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                             Upload Teams
                         </Button>
                     </Tooltip>
+                    )}
+                    {!isLeadOnly && (
                     <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
                         onChange={handleExcelUpload} aria-label="Upload teams from Excel" />
+                    )}
                 </Box>
                 <form onSubmit={handleSubmit} noValidate>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto' }, gap: 1.5, alignItems: 'start' }}>
                         <TextField size="small" label="Team Name *" value={teamName}
                             onChange={e => { setTeamName(e.target.value); setError(''); }}
                             placeholder="Enter team name" />
+                        {isLeadOnly ? (
+                            <TextField size="small" label="Lead Name" value={leadName} disabled />
+                        ) : (
                         <Autocomplete
                             freeSolo
                             size="small"
@@ -195,6 +203,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                             )}
                             ListboxProps={{ sx: { maxHeight: 240 } }}
                         />
+                        )}
                         <Button type="submit" variant="contained" startIcon={<AddIcon />}
                             disabled={loading} size="small"
                             sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none', height: 40 }}>

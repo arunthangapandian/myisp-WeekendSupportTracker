@@ -28,8 +28,8 @@ export default function LoginScreen() {
         setLoading(true);
         setError('');
         try {
-            await api.validateLogin(empId.trim());
-            login(empId.trim().toLowerCase());
+            const result = await api.validateLogin(empId.trim());
+            login(empId.trim().toLowerCase(), result.careerLevel ?? null);
         } catch (err) {
             setError(err.message || 'Access denied');
         }

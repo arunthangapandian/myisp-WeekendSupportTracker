@@ -156,13 +156,25 @@ const employeeDirectory = [
 // ROUTES
 // ══════════════════════════════════════════════════════════════
 
-// Auth validation – accept any non-empty enterprise ID
+// Auth validation – validates enterprise ID and returns career level
 app.post('/api/auth/validate', (req, res) => {
     const { empId } = req.body;
     if (!empId) return res.status(400).json({ error: 'Employee ID is required' });
     const id = empId.trim().toLowerCase();
     if (!id) return res.status(400).json({ error: 'Employee ID is required' });
-    res.json({ valid: true, empId: id });
+
+    // Look up career level from the loaded employee list
+    const emp = employees.find(e =>
+        (e.id || '').toLowerCase() === id || (e.name || '').toLowerCase() === id
+    );
+    const cl = emp ? parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10) : NaN;
+
+    // Block access for career level 10 and above (or unknown if employees list is loaded)
+    if (employees.length > 0 && emp && !isNaN(cl) && cl >= 10) {
+        return res.status(403).json({ error: 'Access denied. Career level 9 and below only.' });
+    }
+
+    res.json({ valid: true, empId: id, careerLevel: isNaN(cl) ? null : cl });
 });
 
 app.get('/api/options/release-owners', (_r, res) => res.json(releaseOwners));

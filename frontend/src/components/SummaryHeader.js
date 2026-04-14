@@ -86,7 +86,7 @@ function calcTotalHoursCSV(timeStr) {
 
 export default function SummaryHeader({ entry, onRefresh }) {
     const { addToast } = useAppContext();
-    const { empId } = useAuth();
+    const { empId, isLeadOnly } = useAuth();
     const fileInputRef = useRef(null);
     const reuploadInputRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(null);
@@ -94,8 +94,12 @@ export default function SummaryHeader({ entry, onRefresh }) {
     if (!entry) return null;
 
     const teams = entry.teams || [];
-    const totalTeams = teams.length;
-    const allItems = teams.flatMap(t => (t.lineItems || []).map(li => ({ ...li, teamName: t.teamName, leadName: t.leadName })));
+    // CL9 leads see summary only for their own team
+    const visibleTeams = isLeadOnly
+        ? teams.filter(t => t.leadName.toLowerCase() === empId.toLowerCase())
+        : teams;
+    const totalTeams = visibleTeams.length;
+    const allItems = visibleTeams.flatMap(t => (t.lineItems || []).map(li => ({ ...li, teamName: t.teamName, leadName: t.leadName })));
     const totalMembers = allItems.length;
     const allowanceItems = allItems.filter(li => li.allowanceCompoff === 'Allowance');
     const compoffItems = allItems.filter(li => li.allowanceCompoff === 'Compoff');
@@ -320,16 +324,21 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                 href={process.env.NODE_ENV === 'production' ? `/uploads/${entry.sanityFile}` : `http://${window.location.hostname}:5000/uploads/${entry.sanityFile}`}
                                 target="_blank" rel="noreferrer" />
                         </Tooltip>
+                        {!isLeadOnly && (
                         <Tooltip title="Re-upload Sanity Sheet">
                             <IconButton size="small" onClick={() => reuploadInputRef.current?.click()}
                                 sx={{ color: '#a5b4fc', '&:hover': { color: '#818cf8' } }}>
                                 <CachedIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
+                        )}
+                        {!isLeadOnly && (
                         <input ref={reuploadInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
                             onChange={handleSanityUpload} aria-label="Re-upload sanity sheet" />
+                        )}
                     </Box>
                 ) : (
+                    !isLeadOnly ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <Tooltip title="Upload Sanity Sheet (.xlsx, .xls, .csv, .pdf)">
                             <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />}
@@ -347,6 +356,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                         <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv,.pdf"
                             onChange={handleSanityUpload} aria-label="Upload sanity sheet" />
                     </Box>
+                    ) : null
                 )}
             </Box>
 

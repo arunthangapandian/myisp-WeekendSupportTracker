@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { formatDateLabel, getTodayStr } from '../utils/helpers';
 import api from '../utils/api';
 import ConfirmDialog from './ConfirmDialog';
@@ -41,6 +42,7 @@ export default function Sidebar() {
         selectedEntryId, navigateToEntry, navigateHome,
         setView, view, addToast, navigateToDeleted,
     } = useAppContext();
+    const { isLeadOnly } = useAuth();
 
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deletedCount, setDeletedCount] = useState(0);
@@ -220,12 +222,14 @@ export default function Sidebar() {
             {sidebarOpen && (
                 <>
                     <Box sx={{ px: 1.5, py: 1.5 }}>
+                        {!isLeadOnly && (
                         <Button variant="contained" fullWidth size="small"
                             startIcon={<ComputerIcon />}
                             onClick={() => setView('create')}
                             sx={{ textTransform: 'none', bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, fontSize: 12 }}>
                             Create New Release
                         </Button>
+                        )}
                     </Box>
                     <Divider sx={{ borderColor: '#312e81' }} />
                     <List dense sx={{ flex: 1, overflowY: 'auto', px: 0.5 }}>
@@ -332,18 +336,22 @@ export default function Sidebar() {
                                                     secondaryTypographyProps={{ fontSize: 11, noWrap: true, color: '#a5b4fc' }}
                                                 />
                                                 <Tooltip title="Edit date/owner">
+                                                    {!isLeadOnly && (
                                                     <IconButton size="small" edge="end"
                                                         onClick={(e) => startEditing(entry, e)}
                                                         sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#818cf8', mr: 0.2 }}>
                                                         <EditIcon sx={{ fontSize: 14 }} />
                                                     </IconButton>
+                                                    )}
                                                 </Tooltip>
+                                                {!isLeadOnly && (
                                                 <IconButton size="small" edge="end"
                                                     onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry); }}
                                                     aria-label={`Delete ${formatDateLabel(entry.date)}`}
                                                     sx={{ opacity: 0.4, '&:hover': { opacity: 1 }, color: '#c7d2fe' }}>
                                                     <DeleteIcon sx={{ fontSize: 14 }} />
                                                 </IconButton>
+                                                )}
                                             </ListItemButton>
                                         )
                                     ))}
@@ -352,8 +360,9 @@ export default function Sidebar() {
                         ))}
                     </List>
 
-                    {/* Deleted Items Section */}
-                    <Divider sx={{ borderColor: '#312e81' }} />
+                    {/* Deleted Items Section — hidden for CL9 leads */}
+                    {!isLeadOnly && <Divider sx={{ borderColor: '#312e81' }} />}
+                    {!isLeadOnly && (
                     <Box sx={{ px: 1.5, py: 1.5 }}>
                         <Button fullWidth size="small" variant={view === 'deleted' ? 'contained' : 'outlined'}
                             startIcon={
@@ -373,6 +382,7 @@ export default function Sidebar() {
                             Deleted Items
                         </Button>
                     </Box>
+                    )}
                 </>
             )}
 
