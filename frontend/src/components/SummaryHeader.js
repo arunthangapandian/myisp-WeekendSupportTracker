@@ -132,7 +132,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
             const label = labelMap[dialogOpen] || dialogOpen.replace(/\b\w/g, c => c.toUpperCase());
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
-            const dt = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+            const dt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
             const a = document.createElement('a');
             a.href = blobUrl;
             a.download = `${label}-${entry.date}_${dt}.xlsx`;

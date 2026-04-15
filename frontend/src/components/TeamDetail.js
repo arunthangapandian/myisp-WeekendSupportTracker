@@ -412,7 +412,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
             const blobUrl = URL.createObjectURL(blob);
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
-            const dt = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+            const dt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
             const safeName = (team?.teamName || 'Team').replace(/\b\w/g, c => c.toUpperCase()).replace(/[\\/:*?"<>|]/g, '_');
             const a = document.createElement('a');
             a.href = blobUrl;
@@ -653,13 +653,13 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                 <TableCell sx={{ p: '4px 4px' }}>
                                                     <Tooltip title={!allowanceEnabled ? 'Allowance requires ≥ 4.5 hrs' : ''}>
                                                         <span style={{ display: 'block', width: '100%' }}>
-                                                        <Select size="small" value={li.allowanceCompoff || 'Compoff'}
-                                                            onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}
-                                                            disabled={!allowanceEnabled && li.allowanceCompoff !== 'Allowance'}
-                                                            sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
-                                                            <MenuItem value="Compoff" sx={{ fontSize: 11 }}>Compoff</MenuItem>
-                                                            <MenuItem value="Allowance" sx={{ fontSize: 11 }} disabled={!allowanceEnabled}>Allowance</MenuItem>
-                                                        </Select>
+                                                            <Select size="small" value={li.allowanceCompoff || 'Compoff'}
+                                                                onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}
+                                                                disabled={!allowanceEnabled && li.allowanceCompoff !== 'Allowance'}
+                                                                sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
+                                                                <MenuItem value="Compoff" sx={{ fontSize: 11 }}>Compoff</MenuItem>
+                                                                <MenuItem value="Allowance" sx={{ fontSize: 11 }} disabled={!allowanceEnabled}>Allowance</MenuItem>
+                                                            </Select>
                                                         </span>
                                                     </Tooltip>
                                                 </TableCell>
