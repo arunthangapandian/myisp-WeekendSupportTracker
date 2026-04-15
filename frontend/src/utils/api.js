@@ -66,10 +66,10 @@ const api = {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         }),
-    saveAllLineItems: (entryId, teamId, items) =>
+    saveAllLineItems: (entryId, teamId, items, changedBy) =>
         request(`${BASE}/entries/${entryId}/teams/${teamId}/line-items`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items }),
+            body: JSON.stringify({ items, changedBy: changedBy || 'UNKNOWN' }),
         }),
     bulkAddLineItems: (entryId, teamId, items) =>
         request(`${BASE}/entries/${entryId}/teams/${teamId}/bulk-line-items`, {
@@ -101,6 +101,8 @@ const api = {
     recoverDeletedItem: (id) => request(`${BASE}/deleted-items/${id}/recover`, { method: 'POST' }),
     permanentDeleteItem: (id) => request(`${BASE}/deleted-items/${id}`, { method: 'DELETE' }),
     deleteAllDeletedItems: () => request(`${BASE}/deleted-items`, { method: 'DELETE' }),
+
+    getLastUpdated: (leadId) => request(`${BASE}/last-updated${leadId ? `?leadId=${encodeURIComponent(leadId)}` : ''}`),
 };
 
 export default api;

@@ -8,6 +8,7 @@ import AddTeamForm from './AddTeamForm';
 import TeamCard from './TeamCard';
 import TeamDetail from './TeamDetail';
 import HistoryScreen from './HistoryScreen';
+import LastUpdatedScreen from './LastUpdatedScreen';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -27,9 +28,10 @@ export default function EntryDetail({ onRefresh }) {
     const { currentEntry, selectedTeamId, view, setView, navigateToResources } = useAppContext();
     const { isLeadOnly, empId } = useAuth();
     const [showHistory, setShowHistory] = useState(false);
+    const [showLastUpdated, setShowLastUpdated] = useState(false);
 
-    // Reset history view when switching entries
-    useEffect(() => { setShowHistory(false); }, [currentEntry?.id]);
+    // Reset history/lastUpdated view when switching entries
+    useEffect(() => { setShowHistory(false); setShowLastUpdated(false); }, [currentEntry?.id]);
 
     // No entry selected — show welcome
     if (!currentEntry) {
@@ -80,7 +82,8 @@ export default function EntryDetail({ onRefresh }) {
         <Box>
             {/* Top bar: Breadcrumb on left, Refresh + History buttons on right */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                <Breadcrumb showHistory={showHistory} onBackFromHistory={() => setShowHistory(false)} />
+                <Breadcrumb showHistory={showHistory} onBackFromHistory={() => setShowHistory(false)}
+                    showLastUpdated={showLastUpdated} onBackFromLastUpdated={() => setShowLastUpdated(false)} />
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Button
                         variant="outlined"
@@ -133,6 +136,8 @@ export default function EntryDetail({ onRefresh }) {
 
             {showHistory ? (
                 <HistoryScreen entryId={currentEntry.id} onBack={() => setShowHistory(false)} />
+            ) : showLastUpdated ? (
+                <LastUpdatedScreen onBack={() => setShowLastUpdated(false)} />
             ) : view === 'team' && selectedTeamId ? (
                 <TeamDetail entryId={currentEntry.id} teamId={selectedTeamId} onRefresh={onRefresh} />
             ) : (
@@ -144,15 +149,33 @@ export default function EntryDetail({ onRefresh }) {
                     <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5, color: '#e0e7ff' }}>
                         📋 Teams
                     </Typography>
+                    {/* CL9 leads only see their own teams; full-access users see all */}
                     {teams.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 4, color: '#a5b4fc', border: '2px dashed #312e81', borderRadius: 2 }}>
                             <Typography variant="body2">No teams added yet for this entry.</Typography>
                         </Box>
                     ) : (
-                        teams.map(t => (
-                            <TeamCard key={t.id} team={t} entryId={currentEntry.id} onRefresh={onRefresh} />
-                        ))
+                        teams
+                            .filter(t => !isLeadOnly || t.leadName.toLowerCase() === (empId || '').toLowerCase())
+                            .map(t => (
+                                <TeamCard key={t.id} team={t} entryId={currentEntry.id} onRefresh={onRefresh} />
+                            ))
                     )}
+
+                    {/* Last Updated link — bottom right */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                        <Typography
+                            component="span"
+                            onClick={() => setShowLastUpdated(true)}
+                            sx={{
+                                fontSize: 11, color: '#6b7280', cursor: 'pointer',
+                                textDecoration: 'underline',
+                                '&:hover': { color: '#a5b4fc' },
+                            }}
+                        >
+                            Last updated
+                        </Typography>
+                    </Box>
                 </>
             )}
         </Box>

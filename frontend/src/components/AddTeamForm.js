@@ -97,7 +97,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                 addToast(`Team "${teamName.trim()}" added`, 'success');
             }
 
-            setTeamName(''); setLeadName(''); setError('');
+            setTeamName(''); setLeadName(isLeadOnly ? empId : ''); setError('');
             onTeamAdded();
         } catch (err) {
             setError(err.message);

@@ -194,7 +194,8 @@ export default function TeamCard({ team, entryId, onRefresh }) {
                         </>
                     )}
                 </Box>
-                {!editing && !isLeadOnly && (
+                {/* Show edit/delete for full-access users, OR for CL9 leads viewing their own team */}
+                {!editing && (isMyTeam || !isLeadOnly) && (
                     <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <IconButton size="small" onClick={(e) => {
                             e.stopPropagation();
