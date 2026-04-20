@@ -1,6 +1,6 @@
 Test Lead,Initiative,Bug id,Bug Title,PDD,Severity,Node Name,Created Date,UAT category,Analysis Comments (select from drop down),Detailed PT comments
 Himanshu,Advisory SA - SONG,4439137,28 March | UAT 2 | Requestor Name not coming in SA Assignment email.,3/28/2026 0:00,Medium,Pacemakers,3/23/2026,Broken functionality,,env issue
-Kavi,Advisory SA - SONG,4439592,28 March | PT/ UAT 2 | Regression | Solution Component | View One Click Pricing is not available in One Click Pricing.,3/28/2026 0:00,Medium,Insurgents,3/24/2026,Broken functionality,,
+Kavi,Advisory SA - SONG,4439592,28 March | PT/ UAT 2 | Regression | Solution Component | View One Click Pricing is not available in One Click Pricing.,3/28/2026 0:00,Medium,Insurgents,3/24/2026,Broken functionality,Duplicate of PT bug,Duplicate bug
 Surbhi,Advisory SA - SONG,4444939,28 March | UAT 2 | Regression | Solution Component | For Advisory SA - Song roles is able to edit the screen which is not expected.,3/28/2026 0:00,High,Simba,3/26/2026,Broken functionality,,
 Pirtheebaa,Advisory SA - SONG,4436696,28 Mar | UAT 2 | Advisory SA Song | Opportunity Workflow | Define Team | SME Request Charter stepper should be enabled,3/28/2026 0:00,Medium,TechPhantoms,3/19/2026,Bug leakage,,
 Anand,AEP,4438649,"28th March | UAT2 | SI AEP | Getting ""MRDR/MRDB validation failed. Please correct the data highlighted in red"" in Staffing Baseline and Profile screen for AEP version",3/28/2026 0:00,Medium,DevStormers,3/23/2026,Broken functionality,,
@@ -206,9 +206,9 @@ Anand,PCW,4445127,"March 28th | UAT2 | PCW/ UI |The staffing baseline release is
 Pirtheebaa,PLD,4425530,28 Mar | UAT 2 | PLD | Opportunity Workflow | Getting blank pages for all 10 guided workflow tiles,3/28/2026 0:00,High,TechWarriors,3/13/2026,Broken functionality,,
 Pirtheebaa,PLD,4436895,March 28th| PLD | UAT 2 | No mail is received after the cancelation of SA assignments.,3/28/2026 0:00,High,Pacemakers,3/19/2026,Broken functionality,,
 Himanshu,PLD,4440662,"Mar28 | UAT2 | Regression | PLD | For Market Maker ESA cancelation mail of Multi Tower deal containing BPMS, if Market Maker ESA is assigned for all SGs, in mail it will only reflect for BPMS",3/28/2026 0:00,Medium,Pacemakers,3/24/2026,Bug leakage,,
-Kavi,Pricing,4427098,28th March | UAT2 | SI OCP | [Deal Specific] Getting error while downloading resource level report,3/28/2026 0:00,Medium,Insurgents,3/16/2026,Broken functionality,,
-Kavi,SI DCTA,4429449,28th March | UAT2 | SI | Not able to save Tax input screen,3/28/2026 0:00,Medium,DevStormers,3/16/2026,Broken functionality,,
-Kavi,SI DCTA,4429559,28th March | UAT2 | SI DCTA| In Expense tab under % of price spacing issue when selected Deal wise(Target/margin) Pricing method,3/28/2026 0:00,Low,DevStormers,3/16/2026,Bug leakage,,
+Kavi,Pricing,4427098,28th March | UAT2 | SI OCP | [Deal Specific] Getting error while downloading resource level report,3/28/2026 0:00,Medium,Insurgents,3/16/2026,Broken functionality,Cannot Reproduce,Not rpero
+Kavi,SI DCTA,4429449,28th March | UAT2 | SI | Not able to save Tax input screen,3/28/2026 0:00,Medium,DevStormers,3/16/2026,Broken functionality,Broken Functionality - This bug was working fine during PT testing,Broken bug
+Kavi,SI DCTA,4429559,28th March | UAT2 | SI DCTA| In Expense tab under % of price spacing issue when selected Deal wise(Target/margin) Pricing method,3/28/2026 0:00,Low,DevStormers,3/16/2026,Bug leakage,Deal Specific issue,Deal specific
 Hajara,SSA,4424590,Regression: UAT___AI_Foundry___SSA____Not getting correct URL for created version in Agent response,3/28/2026 0:00,High,agentcrafters,3/13/2026,Broken functionality,,
 Nandini,Value Shaping,4426651,28 March || UAT2|| Value Shaping | V2V Configurator user able to update data in Mobilization Calculator,3/28/2026 0:00,Medium,Everest,3/16/2026,Bug leakage,,
 Jaya,Value Shaping,4426827,"28 March || UAT2|| Value Shaping | V2V Configurator user able to Reset MOTE and able to generate ADL, RP/OCP",3/28/2026 0:00,Medium,TechCoders,3/16/2026,Bug leakage,,
