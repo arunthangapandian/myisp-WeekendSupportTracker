@@ -159,7 +159,7 @@ Leena,DSP,4426375,March 14th || Prod Sanity || DSP || Contractual Assumptions 1s
 Leena,DSP,4443744,Regression | 28th March | UAT2 | DSP | SGC | The date format is not matching in schedule field with the submission date in opportunity on a page,2026-03-28 00:00:00,Low,Pirates,2026-03-25,Bug leakage,,
 Pirtheebaa,ESA to Market Maker ESA,4435880,28 Mar | UAT 2 | IMS | Market Maker ESA | Unable to edit inspire screens,2026-03-28 00:00:00,High,myISP_IMS,2026-03-18,Bug leakage,,
 Devika,Role Rename Analytics,4445121,28 March | UAT 2 | Regression | In Pipeline Reports ESA is not renamed to Market Maker ESA.,2026-03-28 00:00:00,Medium,Cognilytics,2026-03-26,Broken functionality,,
-Hajara,GEN AI,4429646,"28th Mar | UAT | Gen AI | SSA | ""Find Relevent Learnings"" prompt not giving proper response",2026-03-28 00:00:00,Medium,GEN AI - Solution Super Agent,2026-03-16,Broken functionality,,
+Hajara,GEN AI,4429646,"28th Mar | UAT | Gen AI | SSA | ""Find Relevent Learnings"" prompt not giving proper response",2026-03-28 00:00:00,Medium,GEN AI - Solution Super Agent,2026-03-16,Broken functionality,User Error,
 Hajara,GEN AI,4429672,28th Mar | UAT | Gen AI | HSP | Bottom line getting cutoff in HSP chat,2026-03-28 00:00:00,Low,GEN AI - Solution Super Agent,2026-03-16,Broken functionality,,
 Hajara,GEN AI,4437214,28th March | UAT2 | GEN AI | Learnings | Benchmark filters drop-down are flowing outside of the pop-up,2026-03-28 00:00:00,Low,QDI - Opportunity Metrics,2026-03-20,Bug leakage,,
 Hajara,GEN AI,4437862,28 March | UAT 2 | Review Approvals | Reporting & Compliance | Generative AI tab having issues.,2026-03-28 00:00:00,Medium,CodeCrafters,2026-03-20,Bug leakage,,
