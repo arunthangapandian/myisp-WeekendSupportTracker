@@ -1,5 +1,5 @@
 Test Lead,Initiative,Bug id,Bug Title,PDD,Severity,Node Name,Created Date,UAT category,Analysis Comments (select from drop down),Detailed PT comments
-Himanshu,Advisory SA - SONG,4439137,28 March | UAT 2 | Requestor Name not coming in SA Assignment email.,2026-03-28 00:00:00,Medium,Pacemakers,2026-03-23,Broken functionality,,
+Himanshu,Advisory SA - SONG,4439137,28 March | UAT 2 | Requestor Name not coming in SA Assignment email.,2026-03-28 00:00:00,Medium,Pacemakers,2026-03-23,Broken functionality,Environment Issue,env issue
 Kavi,Advisory SA - SONG,4439592,28 March | PT/ UAT 2 | Regression | Solution Component | View One Click Pricing is not available in One Click Pricing.,2026-03-28 00:00:00,Medium,Insurgents,2026-03-24,Broken functionality,,
 Surbhi,Advisory SA - SONG,4444939,28 March | UAT 2 | Regression | Solution Component | For Advisory SA - Song roles is able to edit the screen which is not expected.,2026-03-28 00:00:00,High,Simba,2026-03-26,Broken functionality,,
 Pirtheebaa,Advisory SA - SONG,4436696,28 Mar | UAT 2 | Advisory SA Song | Opportunity Workflow | Define Team | SME Request Charter stepper should be enabled,2026-03-28 00:00:00,Medium,TechPhantoms,2026-03-19,Bug leakage,,
