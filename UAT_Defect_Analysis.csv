@@ -6,7 +6,7 @@ Pirtheebaa,Advisory SA - SONG,4436696,28 Mar | UAT 2 | Advisory SA Song | Opport
 Anand,AEP,4438649,"28th March | UAT2 | SI AEP | Getting ""MRDR/MRDB validation failed. Please correct the data highlighted in red"" in Staffing Baseline and Profile screen for AEP version",3/28/2026 0:00,Medium,DevStormers,3/23/2026,Broken functionality,,
 Anand,AEP,4444390,28th March | UAT2 | SI AEP | Profiles are not flowing for AEP Versions,3/28/2026 0:00,Medium,DevStormers,3/26/2026,Broken functionality,,
 Anand,AEP,4430394,28th March | UAT2 | SI AEP | Not able to add named resources at AEP site,3/28/2026 0:00,Medium,DevStormers,3/17/2026,Bug leakage,,
-Jaya,AMS ADL,4394736,28th March | UAT2 Sanity | AMS | ADL is giving validation error for Subk staffing records even though details are configured,3/28/2026 0:00,High,TechCoders,2/27/2026,Both,,
+Jaya,AMS ADL,4394736,28th March | UAT2 Sanity | AMS | ADL is giving validation error for Subk staffing records even though details are configured,3/28/2026 0:00,High,TechCoders,2/27/2026,Both,Parallel UAT Execution,
 Jaya,AMS DCTA,4446898,Mar 28 | Prod Sanity | AMS DCTA | Validation Error occurs in the Labor API when triggering Request Pricing,3/28/2026 13:06,Critical,TechCoders,3/28/2026,Broken functionality,,
 Jaya,AMS R2 screen,4424770,Regression : 28th March | UAT2 | AMS - Staffing | LCR values are not getting retained for Subk records after save,3/28/2026 0:00,High,TechCoders,3/13/2026,Both,,
 Jaya,AMS R2 screen,4425241,28th March | UAT2 | AMS - Staffing LBS | Exported file Shows Duplicate Records.,3/28/2026 0:00,Medium,TechCoders,3/13/2026,Broken functionality,,
