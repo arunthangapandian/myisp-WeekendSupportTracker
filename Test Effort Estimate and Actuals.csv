@@ -1,6 +1,6 @@
 ﻿ID,Title,Testing POC,Node Name,ExternalRef ID,Story Points,Test Estimated Effort (Hours)
-3984082,"As a Solution Architect I want the system to default Rate Type for Named Resources from MRDB based on MRDR filtering using Country, Economic Profile, Career Track, Career Level, and Bill Code So that the defaulted values are accurate","B Gadad, Anand",TechAvengers,mervinkumar.manickam,,
-3990416,"As a Solution Architect, I want the Role Code to be derived from the Standard Role instead of the Standard Rate Card Role So that the Role Code is populated for all staffing profiles regardless of rate card type enabling complete and accurate data","B Gadad, Anand",TechAvengers,mervinkumar.manickam,,
+3984082,"As a Solution Architect I want the system to default Rate Type for Named Resources from MRDB based on MRDR filtering using Country, Economic Profile, Career Track, Career Level, and Bill Code So that the defaulted values are accurate","B Gadad, Anand",TechAvengers,mervinkumar.manickam,,45.0
+3990416,"As a Solution Architect, I want the Role Code to be derived from the Standard Role instead of the Standard Rate Card Role So that the Role Code is populated for all staffing profiles regardless of rate card type enabling complete and accurate data","B Gadad, Anand",TechAvengers,mervinkumar.manickam,,34.0
 4386420,"As Mobilization SME, I want to see the new screen called ""Detail Ramp"" for IMS","Baskaran, Nandini",Achievers,nityanand.giri,5.0,
 4386421,"As a IMS Mobilization SME, I want to see Kick off date and Start month of SD within Define Delivery Ramp screen","Baskaran, Nandini",Achievers,nityanand.giri,8.0,
 4386422,"As a IMS Mobilization SME, I want to see Duration with the tab Delivery Ramp within with the ability to add Delivery Ramp and ramp %","Baskaran, Nandini",Achievers,nityanand.giri,8.0,
@@ -53,7 +53,7 @@
 4491134,"As a Solution Architect, I want to toggle the Analysis View on/off and switch between FTE and Duration metrics and between Grid and Chart views on the DCSO Reports screen, so that I can customise how I analyse the DCSO workforce data","Vv, Shini",TechStars,mohanraj.a.selvaraj,5.0,
 4491135,"As a Solution Architect, I want to be prompted to sign in to Power BI when I first open the DCSO Reports tab, so that my identity is authenticated before the embedded Power BI report loads","Vv, Shini",TechStars,mohanraj.a.selvaraj,3.0,
 4491674,"As a Solution Architect, I want the Skill Reference field to be validated for mandatory presence","Vv, Shini",TechStars,mohanraj.a.selvaraj,5.0,
-4494836,"As a SA, I should get improved visibility and traceability for the SDL generation errors in SDL validation error","B Gadad, Anand",DevStormers,mervinkumar.manickam,,
+4494836,"As a SA, I should get improved visibility and traceability for the SDL generation errors in SDL validation error","B Gadad, Anand",DevStormers,mervinkumar.manickam,,67.0
 4494852,"As a SA, I should get improved visibility and traceability for the errors in Staffing Baseline - Show Error screen","B Gadad, Anand",DevStormers,mervinkumar.manickam,,
 4495457,"As a Solution Architect, I want to apply advanced refine filters (Country, Shore, Level, Skills, Economic Profile, Role) from the Refine Data panel on DCSO Reports, so that I can narrow the FTE charts and data grid to a specific workforce subset","Vv, Shini",TechStars,mohanraj.a.selvaraj,5.0,
 4503349,PCW 8.7 ACN WB: Add Dynamic Target Pricing Introduction & Instructions Hyperlink in Staffing Baseline Worksheet,"B Gadad, Anand",Tech Ensemble,mervinkumar.manickam,3.0,
