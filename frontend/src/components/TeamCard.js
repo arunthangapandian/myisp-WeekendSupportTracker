@@ -139,28 +139,35 @@ export default function TeamCard({ team, entryId, onRefresh }) {
                             <TextField size="small" label="Team Name" value={editTeamName}
                                 onChange={e => setEditTeamName(e.target.value)}
                                 sx={{ minWidth: 160 }} />
-                            <Autocomplete
-                                freeSolo
-                                size="small"
-                                options={getLeadSuggestions(editLeadName)}
-                                getOptionLabel={o => typeof o === 'string' ? o : o.name}
-                                inputValue={editLeadName}
-                                onInputChange={(_, val) => setEditLeadName(val)}
-                                onChange={(_, val) => { if (val && typeof val === 'object') setEditLeadName(val.name); }}
-                                filterOptions={x => x}
-                                renderOption={(props, o) => (
-                                    <li {...props} key={o.id}>
-                                        <Box>
-                                            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
-                                            <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}{o.supervisor ? ` • ${o.supervisor}` : ''}</Typography>
-                                        </Box>
-                                    </li>
-                                )}
-                                renderInput={(params) => (
-                                    <TextField {...params} size="small" label="Lead Name" placeholder="Type 2+ chars" sx={{ minWidth: 200 }} />
-                                )}
-                                sx={{ minWidth: 200 }}
-                            />
+                            {/* CL9 leads can only edit team name, not lead name */}
+                            {isLeadOnly ? (
+                                <TextField size="small" label="Lead Name" value={editLeadName}
+                                    InputProps={{ readOnly: true }}
+                                    sx={{ minWidth: 200, '& .MuiInputBase-input': { color: '#a5b4fc', cursor: 'not-allowed' } }} />
+                            ) : (
+                                <Autocomplete
+                                    freeSolo
+                                    size="small"
+                                    options={getLeadSuggestions(editLeadName)}
+                                    getOptionLabel={o => typeof o === 'string' ? o : o.name}
+                                    inputValue={editLeadName}
+                                    onInputChange={(_, val) => setEditLeadName(val)}
+                                    onChange={(_, val) => { if (val && typeof val === 'object') setEditLeadName(val.name); }}
+                                    filterOptions={x => x}
+                                    renderOption={(props, o) => (
+                                        <li {...props} key={o.id}>
+                                            <Box>
+                                                <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
+                                                <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}{o.supervisor ? ` • ${o.supervisor}` : ''}</Typography>
+                                            </Box>
+                                        </li>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField {...params} size="small" label="Lead Name" placeholder="Type 2+ chars" sx={{ minWidth: 200 }} />
+                                    )}
+                                    sx={{ minWidth: 200 }}
+                                />
+                            )}
                             <IconButton size="small" color="success" onClick={handleEditSave}
                                 disabled={saving} title="Save">
                                 <CheckIcon fontSize="small" />
