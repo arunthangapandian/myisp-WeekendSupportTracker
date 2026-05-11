@@ -41,10 +41,10 @@ const path = require('path');
 const { Buffer } = require('buffer');
 
 // ── ADO config ────────────────────────────────────────────────────────────────
-const ORG     = process.env.AZURE_DEVOPS_ORG     || 'accenturecio08';
-const PROJECT = process.env.AZURE_DEVOPS_PROJECT  || 'AutomationProcess_29697';
-const REPO    = process.env.AZURE_DEVOPS_REPO     || 'Dhaarani';
-const BRANCH  = process.env.AZURE_DEVOPS_BRANCH   || 'main';
+const ORG = process.env.AZURE_DEVOPS_ORG || 'accenturecio08';
+const PROJECT = process.env.AZURE_DEVOPS_PROJECT || 'AutomationProcess_29697';
+const REPO = process.env.AZURE_DEVOPS_REPO || 'Dhaarani';
+const BRANCH = process.env.AZURE_DEVOPS_BRANCH || 'main';
 const API_VER = '7.0';
 
 // ── Load .env for local dev ───────────────────────────────────────────────────
