@@ -13,8 +13,8 @@ export default function Toast() {
     return (
         <>
             {toasts.map((t, i) => (
-                <Snackbar key={t.id} open anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    sx={{ bottom: `${(i * 60) + 24}px !important` }}
+                <Snackbar key={t.id} open anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    sx={{ top: `${(i * 60) + 24}px !important` }}
                     onClose={() => dismissToast(t.id)}>
                     <MuiAlert severity={t.type === 'error' ? 'error' : t.type === 'info' ? 'info' : 'success'}
                         elevation={6} variant="filled" onClose={() => dismissToast(t.id)}

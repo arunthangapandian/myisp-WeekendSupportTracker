@@ -447,15 +447,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         <Chip label={`Team: ${team.teamName}`} size="small" variant="outlined" sx={{ borderColor: '#4f46e5', color: '#c7d2fe' }} />
                         <Chip label={`Lead: ${team.leadName}`} size="small" variant="outlined" sx={{ borderColor: '#4f46e5', color: '#c7d2fe' }} />
                     </Box>
-                    <Tooltip title="Upload (.xlsx, .csv)">
-                        <Button size="small" startIcon={<CloudUploadIcon />}
-                            onClick={() => fileInputRef.current?.click()}
-                            sx={{ textTransform: 'none' }}>
-                            Upload
-                        </Button>
-                    </Tooltip>
-                    <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
-                        onChange={handleFileUpload} aria-label="Upload file" />
                     <Tooltip title="Export to CSV">
                         <Button size="small" startIcon={<FileDownloadIcon />} onClick={handleExport}
                             sx={{ textTransform: 'none' }}>
@@ -633,7 +624,14 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         size="small" options={TIME_OPTIONS}
                                                         value={end || null}
                                                         onChange={(_, val) => {
-                                                            updateField(li.id, 'time', buildTimeStr(start, val || ''));
+                                                            const newTime = buildTimeStr(start, val || '');
+                                                            const newHours = calcHoursNum(newTime);
+                                                            setLineItems(prev => prev.map(item => {
+                                                                if (item.id !== li.id) return item;
+                                                                const updated = { ...item, time: newTime };
+                                                                if (!isNaN(newHours) && newHours < 4.5 && updated.allowanceCompoff === 'Allowance') updated.allowanceCompoff = 'Compoff';
+                                                                return updated;
+                                                            }));
                                                             setLineErrors(prev => { const { [li.id]: cur, ...rest } = prev; return !cur?.start ? rest : { ...prev, [li.id]: { ...cur, end: false } }; });
                                                         }}
                                                         renderInput={(params) => (
@@ -655,7 +653,6 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         <span style={{ display: 'block', width: '100%' }}>
                                                             <Select size="small" value={li.allowanceCompoff || 'Compoff'}
                                                                 onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}
-                                                                disabled={!allowanceEnabled && li.allowanceCompoff !== 'Allowance'}
                                                                 sx={{ fontSize: 11, width: '100%', '& .MuiSelect-select': { py: '4px', px: '6px' } }}>
                                                                 <MenuItem value="Compoff" sx={{ fontSize: 11 }}>Compoff</MenuItem>
                                                                 <MenuItem value="Allowance" sx={{ fontSize: 11 }} disabled={!allowanceEnabled}>Allowance</MenuItem>

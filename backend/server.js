@@ -5,8 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const { Pool } = require('pg');
 const ExcelJS = require('exceljs');
+const azureStorage = require('./azure/repository');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,15 +34,14 @@ const upload = multer({
     },
 });
 
-// ── Persistent Store (PostgreSQL + JSON file fallback) ───────
-let pool = null;
-if (process.env.DATABASE_URL) {
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
-    });
-    console.log('PostgreSQL configured via DATABASE_URL');
-}
+// ── Persistent Store (Azure Blob Storage + local JSON file fallback) ────────
+//
+// Primary store : Azure Blob Storage  (weekend-support-data/data.json)
+// Fallback store: data.json on the local filesystem (useful for local dev)
+//
+// Every mutating API call writes to the local file immediately, then schedules
+// a debounced Azure Blob Storage upload (2 s) to batch rapid sequential saves
+// and avoid unnecessary network round-trips.
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -65,42 +64,30 @@ function loadDataFromFile() {
     return null;
 }
 
-async function loadDataFromDB(retries = 3) {
-    if (!pool) return null;
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            const res = await pool.query("SELECT key, value FROM app_data WHERE key IN ('entries','deletedItems','employees','changelogs','resourceUploadHistory')");
-            const data = { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
-            res.rows.forEach(row => { data[row.key] = row.value; });
-            console.log(`Loaded ${Object.keys(data.entries).length} entries, ${(data.employees || []).length} employees from PostgreSQL`);
-            return data;
-        } catch (err) {
-            console.error(`PostgreSQL load attempt ${attempt}/${retries} failed:`, err.message);
-            if (attempt < retries) await new Promise(r => setTimeout(r, 2000 * attempt));
-        }
-    }
-    return null;
-}
+// Debounce timer — holds a reference to the pending Azure Blob Storage upload
+let _azureSaveTimer = null;
 
 function saveData() {
-    // File fallback (for local dev)
+    // Always write to the local JSON file immediately for fast, reliable durability
     try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify({ entries, deletedItems, employees, changelogs, resourceUploadHistory }, null, 2), 'utf-8');
+        fs.writeFileSync(
+            DATA_FILE,
+            JSON.stringify({ entries, deletedItems, employees, changelogs, resourceUploadHistory }, null, 2),
+            'utf-8'
+        );
     } catch (err) {
         console.error('Failed to save data.json:', err.message);
     }
-    // PostgreSQL (async, fire-and-forget)
-    if (pool) {
-        const upsert = (key, value) =>
-            pool.query(
-                `INSERT INTO app_data (key, value) VALUES ($1, $2::jsonb) ON CONFLICT (key) DO UPDATE SET value = $2::jsonb`,
-                [key, JSON.stringify(value)]
-            ).catch(err => console.error(`PG save ${key}:`, err.message));
-        upsert('entries', entries);
-        upsert('deletedItems', deletedItems);
-        upsert('employees', employees);
-        upsert('changelogs', changelogs);
-        upsert('resourceUploadHistory', resourceUploadHistory);
+
+    // Schedule a debounced Azure Blob Storage upload (batches rapid sequential writes)
+    if (azureStorage.isConfigured()) {
+        clearTimeout(_azureSaveTimer);
+        _azureSaveTimer = setTimeout(() => {
+            azureStorage
+                .saveData({ entries, deletedItems, employees, changelogs, resourceUploadHistory })
+                .then(ok => { if (!ok) console.warn('Azure Blob Storage save did not complete'); })
+                .catch(err => console.error('Azure Blob Storage scheduled save error:', err.message));
+        }, 2000);
     }
 }
 
@@ -447,6 +434,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
     if (!team) return res.status(404).json({ error: 'Team not found' });
     const items = req.body.items;
     if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
+    const prevMemberCount = team.lineItems.length;
     team.lineItems = items.map(li => ({
         id: li.id || uuidv4(), name: li.name || '', careerLevel: li.careerLevel || '',
         supervisor: li.supervisor || '',
@@ -458,7 +446,7 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
     if (!changelogs[req.params.eid]) changelogs[req.params.eid] = [];
     changelogs[req.params.eid].push({
         id: uuidv4(), type: 'teamSave',
-        oldValue: '', newValue: team.teamName,
+        oldValue: String(prevMemberCount), newValue: team.teamName,
         changedBy, teamName: team.teamName, leadName: team.leadName,
         timestamp: new Date().toISOString(),
     });
@@ -602,6 +590,29 @@ app.get('/api/entries/:id/history', (req, res) => {
     res.json(normalized);
 });
 
+// Clear all history for an entry
+app.delete('/api/entries/:id/history', (req, res) => {
+    if (!entries[req.params.id]) return res.status(404).json({ error: 'Entry not found' });
+    changelogs[req.params.id] = [];
+    saveData();
+    res.json({ success: true });
+});
+
+// Delete history records for a specific date (YYYY-MM-DD)
+app.delete('/api/entries/:id/history/by-date/:date', (req, res) => {
+    if (!entries[req.params.id]) return res.status(404).json({ error: 'Entry not found' });
+    const targetDate = req.params.date; // e.g., "2026-05-11"
+    if (!changelogs[req.params.id]) { changelogs[req.params.id] = []; return res.json({ success: true, deleted: 0 }); }
+    const before = changelogs[req.params.id].length;
+    changelogs[req.params.id] = changelogs[req.params.id].filter(h => {
+        const d = new Date(h.timestamp || h.date || '').toISOString().slice(0, 10);
+        return d !== targetDate;
+    });
+    const deleted = before - changelogs[req.params.id].length;
+    saveData();
+    res.json({ success: true, deleted });
+});
+
 // Generated by GitHub Copilot
 /** Parse time range string and calculate total hours (server-side) */
 function calcTotalHoursServer(timeStr) {
@@ -656,8 +667,8 @@ function titleCase(str) {
 /** Apply standard header + row styling to a sheet. Highlights duplicate names in yellow. */
 function styleExcelSheet(sheet, columns, rowDataList, getRowBg) {
     const HEADER_BG = 'FF3730A3';
-    const BORDER = { style: 'thin', color: { argb: 'FF4F46E5' } };
-    const ROW_BORDER = { style: 'hair', color: { argb: 'FFD1D5DB' } };
+    const BORDER = { style: 'thin', color: { argb: 'FF000000' } };
+    const ROW_BORDER = { style: 'thin', color: { argb: 'FF000000' } };
     const DUPLICATE_BG = 'FFFFFF00'; // yellow for duplicate names
 
     // Detect duplicate names (case-insensitive) across all rows
@@ -928,21 +939,10 @@ if (fs.existsSync(frontendBuildPath)) {
 
 // ── Start server with async data load ────────────────────────
 async function startServer() {
-    // Init PostgreSQL table if available
-    if (pool) {
-        try {
-            await pool.query(`CREATE TABLE IF NOT EXISTS app_data (key TEXT PRIMARY KEY, value JSONB NOT NULL DEFAULT '{}')`);
-            console.log('PostgreSQL table ready');
-        } catch (err) {
-            console.error('PostgreSQL init failed:', err.message);
-            pool = null;
-        }
-    }
-
-    // Load data: prefer PostgreSQL, fallback to file
-    const dbData = await loadDataFromDB();
+    // Load data: prefer Azure Blob Storage, fall back to local data.json
+    const azureData = await azureStorage.loadData();
     const fileData = loadDataFromFile();
-    const data = dbData || fileData || { entries: {}, deletedItems: [], employees: null, changelogs: {} };
+    const data = azureData || fileData || { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
 
     entries = data.entries || {};
     deletedItems = data.deletedItems || [];
@@ -974,4 +974,17 @@ async function startServer() {
 startServer().catch(err => {
     console.error('Failed to start server:', err);
     process.exit(1);
+});
+
+// Flush any pending Azure Blob Storage upload before the process exits
+process.on('SIGTERM', () => {
+    if (_azureSaveTimer) {
+        clearTimeout(_azureSaveTimer);
+        azureStorage
+            .saveData({ entries, deletedItems, employees, changelogs, resourceUploadHistory })
+            .catch(err => console.error('Shutdown Azure Blob save error:', err.message))
+            .finally(() => process.exit(0));
+    } else {
+        process.exit(0);
+    }
 });

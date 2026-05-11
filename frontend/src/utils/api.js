@@ -78,6 +78,8 @@ const api = {
         }),
 
     getEntryHistory: (entryId) => request(`${BASE}/entries/${entryId}/history`),
+    clearEntryHistory: (entryId) => request(`${BASE}/entries/${entryId}/history`, { method: 'DELETE' }),
+    deleteHistoryByDate: (entryId, date) => request(`${BASE}/entries/${entryId}/history/by-date/${date}`, { method: 'DELETE' }),
 
     uploadEmployeeList: (employees, uploadedBy, filename) =>
         request(`${BASE}/options/employees`, {

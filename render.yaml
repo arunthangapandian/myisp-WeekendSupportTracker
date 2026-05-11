@@ -7,13 +7,17 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: myisp-db
-          property: connectionString
-
-databases:
-  - name: myisp-db
-    plan: free
-    databaseName: myisp_data
-    user: myisp_user
+      # ── Azure Blob Storage ─────────────────────────────────────────────────
+      # Primary data store: stores all application data in a single JSON blob.
+      # Set AZURE_STORAGE_CONNECTION_STRING in the Render dashboard (Secret env var).
+      # Obtain the connection string from:
+      #   Azure Portal → Storage account → Security + networking → Access keys
+      # Never commit the connection string to source control.
+      - key: AZURE_STORAGE_CONNECTION_STRING
+        sync: false
+      # Optional — override the container name (default: weekend-support-data)
+      # - key: AZURE_STORAGE_CONTAINER
+      #   value: weekend-support-data
+      # Optional — override the blob file name (default: data.json)
+      # - key: AZURE_STORAGE_BLOB_NAME
+      #   value: data.json
