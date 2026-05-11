@@ -53,7 +53,7 @@ export default function HistoryScreen({ entryId, onBack }) {
         setLoading(false);
     };
 
-    useEffect(() => { loadHistory(); }, [entryId]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { loadHistory(); }, [entryId]); // eslint-disable-line
 
     /** Unique calendar dates present in history, sorted newest first */
     const availableDates = useMemo(() => {
