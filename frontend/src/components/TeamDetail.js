@@ -142,17 +142,18 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
             if (hasUnsavedChanges()) return;
             const snap = JSON.parse(JSON.stringify(team.lineItems || []));
             setSavedSnapshot(JSON.parse(JSON.stringify(snap)));
-            // Apply default 11:00 AM login time for display if not already set
+            // Apply default 11:00 AM login time; auto-correct Allowance → Compoff when hrs < 4.5
             const withDefaults = snap.map(li => {
                 const { start, end } = (() => {
                     if (!li.time || !li.time.includes('-')) return { start: '', end: '' };
                     const parts = li.time.split('-').map(s => s.trim());
                     return { start: parts[0] || '', end: parts[1] || '' };
                 })();
-                if (!start) {
-                    return { ...li, time: `11:00 AM - ${end}` };
-                }
-                return li;
+                const timeWithDefault = !start ? `11:00 AM - ${end}` : li.time;
+                const hrs = calcHoursNum(timeWithDefault);
+                const correctedType = (!isNaN(hrs) && hrs < 4.5 && li.allowanceCompoff === 'Allowance')
+                    ? 'Compoff' : li.allowanceCompoff;
+                return { ...li, time: timeWithDefault, allowanceCompoff: correctedType };
             });
             setLineItems(withDefaults);
         }
@@ -607,7 +608,14 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         size="small" options={TIME_OPTIONS}
                                                         value={start || null}
                                                         onChange={(_, val) => {
-                                                            updateField(li.id, 'time', buildTimeStr(val || '', end));
+                                                            const newTime = buildTimeStr(val || '', end);
+                                                            const newHours = calcHoursNum(newTime);
+                                                            setLineItems(prev => prev.map(item => {
+                                                                if (item.id !== li.id) return item;
+                                                                const updated = { ...item, time: newTime };
+                                                                if (!isNaN(newHours) && newHours < 4.5 && updated.allowanceCompoff === 'Allowance') updated.allowanceCompoff = 'Compoff';
+                                                                return updated;
+                                                            }));
                                                             setLineErrors(prev => { const { [li.id]: cur, ...rest } = prev; return !cur?.end ? rest : { ...prev, [li.id]: { ...cur, start: false } }; });
                                                         }}
                                                         renderInput={(params) => (

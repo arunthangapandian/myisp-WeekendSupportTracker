@@ -157,19 +157,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                     <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1, color: '#e0e7ff' }}>
                         ➕ Add Team
                     </Typography>
-                    {!isLeadOnly && (
-                        <Tooltip title="Upload Teams from Excel (.xlsx, .csv) — columns: Team Name, Lead Name">
-                            <Button size="small" startIcon={<UploadFileIcon />}
-                                onClick={() => fileInputRef.current?.click()}
-                                sx={{ textTransform: 'none', color: '#a5b4fc' }}>
-                                Upload Teams
-                            </Button>
-                        </Tooltip>
-                    )}
-                    {!isLeadOnly && (
-                        <input ref={fileInputRef} type="file" hidden accept=".xlsx,.xls,.csv"
-                            onChange={handleExcelUpload} aria-label="Upload teams from Excel" />
-                    )}
+
                 </Box>
                 <form onSubmit={handleSubmit} noValidate>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto' }, gap: 1.5, alignItems: 'start' }}>
