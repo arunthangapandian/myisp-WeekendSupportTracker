@@ -153,12 +153,21 @@ const HARDCODED_CAREER_LEVELS = {
     'd.sampathkumar': 8,
 };
 
-// Auth validation – validates enterprise ID and returns career level
+// Auth validation – validates enterprise ID + password and returns career level.
+// Password is checked against APP_PASSWORD environment variable.
+// If APP_PASSWORD is not set, password check is skipped (dev/local mode only).
 app.post('/api/auth/validate', (req, res) => {
-    const { empId } = req.body;
+    const { empId, password } = req.body;
     if (!empId) return res.status(400).json({ error: 'Employee ID is required' });
     const id = empId.trim().toLowerCase();
     if (!id) return res.status(400).json({ error: 'Employee ID is required' });
+
+    // Password validation (only enforced when APP_PASSWORD is configured)
+    const appPassword = process.env.APP_PASSWORD;
+    if (appPassword) {
+        if (!password) return res.status(401).json({ error: 'Password is required' });
+        if (password !== appPassword) return res.status(401).json({ error: 'Invalid Employee ID or password' });
+    }
 
     // Check hardcoded map first (reliable, CSV-independent)
     if (Object.prototype.hasOwnProperty.call(HARDCODED_CAREER_LEVELS, id)) {

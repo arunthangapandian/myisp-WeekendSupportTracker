@@ -23,10 +23,10 @@ async function request(url, opts = {}) {
 }
 
 const api = {
-    validateLogin: (empId) =>
+    validateLogin: (empId, password) =>
         request(`${BASE}/auth/validate`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ empId }),
+            body: JSON.stringify({ empId, password }),
         }),
     getReleaseOwners: () => request(`${BASE}/options/release-owners`),
     getCareerLevels: () => request(`${BASE}/options/career-levels`),
