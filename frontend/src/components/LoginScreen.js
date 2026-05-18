@@ -8,35 +8,36 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import ComputerIcon from '@mui/icons-material/Computer';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 /**
- * Login screen – validates enterprise ID (e.g. arun.thangapandian) + password
- * against the server-side allowed-users whitelist before granting access.
- * Password is the Accenture TFS / Azure DevOps password configured on the server.
+ * Login screen – validates enterprise ID (e.g. arun.thangapandian).
+ * Email format (containing @) is rejected — use enterprise ID only.
  */
 export default function LoginScreen() {
     const { login } = useAuth();
     const [empId, setEmpId] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const handleEmpIdChange = (e) => {
+        const val = e.target.value;
+        // Strip @domain suffix if user pastes an email
+        const cleaned = val.includes('@') ? val.split('@')[0] : val;
+        setEmpId(cleaned);
+        setError('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!empId.trim()) { setError('Employee ID is required'); return; }
-        if (!password) { setError('Password is required'); return; }
+        if (empId.includes('@')) { setError('Enter your Employee ID only (e.g. arun.thangapandian), not your email'); return; }
         setLoading(true);
         setError('');
         try {
-            const result = await api.validateLogin(empId.trim(), password);
+            const result = await api.validateLogin(empId.trim());
             login(empId.trim().toLowerCase(), result.careerLevel ?? null);
         } catch (err) {
             setError(err.message || 'Access denied');
@@ -56,33 +57,15 @@ export default function LoginScreen() {
                         Weekend Production Support
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        Sign in with your Employee ID and TFS password
+                        Enter your Employee ID to continue
                     </Typography>
                     <form onSubmit={handleSubmit} noValidate>
                         <TextField
                             fullWidth label="Employee ID" placeholder="e.g. arun.thangapandian"
-                            value={empId} onChange={e => { setEmpId(e.target.value); setError(''); }}
+                            value={empId} onChange={handleEmpIdChange}
                             autoFocus size="small" sx={{ mb: 2 }}
                             autoComplete="username"
-                        />
-                        <TextField
-                            fullWidth label="Password" placeholder="Accenture TFS Password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={password} onChange={e => { setPassword(e.target.value); setError(''); }}
-                            size="small" sx={{ mb: 2 }}
-                            autoComplete="current-password"
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                            onClick={() => setShowPassword(p => !p)}
-                                            edge="end" size="small">
-                                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
+                            helperText="Use your enterprise ID, not email"
                         />
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                         <Button type="submit" variant="contained" fullWidth size="large"
