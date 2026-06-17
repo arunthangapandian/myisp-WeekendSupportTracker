@@ -2,13 +2,15 @@
 
 A full-stack web application to track and manage weekend production support activities.
 
+**This application runs completely offline with no external dependencies or cloud services.**
+
 ## Tech Stack
 
 | Layer    | Technology                    |
 |----------|-------------------------------|
-| Frontend | React 18, CSS (custom)        |
+| Frontend | React 18, Material-UI         |
 | Backend  | Node.js, Express              |
-| Storage  | In-memory (server-side)       |
+| Storage  | Local JSON file (data.json)   |
 
 ## Project Structure
 
@@ -17,6 +19,7 @@ Weekend Support/
 ├── backend/
 │   ├── package.json
 │   ├── server.js          # Express API server
+│   ├── data.json          # Local data storage
 │   └── uploads/           # Uploaded sanity sheets
 ├── frontend/
 │   ├── package.json
@@ -27,6 +30,7 @@ Weekend Support/
 │       ├── index.css       # Global styles
 │       ├── App.js          # Root component
 │       ├── context/
+│       │   ├── AppContext.js
 │       │   └── AuthContext.js
 │       ├── components/
 │       │   ├── Header.js
@@ -34,9 +38,10 @@ Weekend Support/
 │       │   ├── LoginScreen.js
 │       │   ├── CreateEntryForm.js
 │       │   ├── EntryDetail.js
-│       │   ├── SummaryCards.js
+│       │   ├── SummaryHeader.js
 │       │   ├── AddTeamForm.js
-│       │   └── TeamCard.js
+│       │   ├── TeamCard.js
+│       │   └── TeamDetail.js
 │       └── utils/
 │           ├── api.js      # API client
 │           └── helpers.js  # Date formatting utilities

@@ -598,8 +598,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                 <TableCell sx={{ p: '4px 4px' }}>
                                                     <TextField size="small" value={li.supervisor || ''} variant="outlined"
                                                         placeholder="Supervisor"
-                                                        onChange={e => updateField(li.id, 'supervisor', e.target.value)}
-                                                        InputProps={{ sx: { fontSize: 11, py: 0 } }}
+                                                        InputProps={{ readOnly: true, sx: { fontSize: 11, py: 0 } }}
                                                         inputProps={{ style: { padding: '4px 6px', fontSize: 11 } }}
                                                         sx={{ width: '100%' }} />
                                                 </TableCell>
@@ -657,7 +656,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 4px' }}>
-                                                    <Tooltip title={!allowanceEnabled ? 'Allowance requires ≥ 4.5 hrs' : ''}>
+                                                    <Tooltip title={!allowanceEnabled ? 'Allowance requires more than 4.5 hours' : ''}>
                                                         <span style={{ display: 'block', width: '100%' }}>
                                                             <Select size="small" value={li.allowanceCompoff || 'Compoff'}
                                                                 onChange={e => updateField(li.id, 'allowanceCompoff', e.target.value)}

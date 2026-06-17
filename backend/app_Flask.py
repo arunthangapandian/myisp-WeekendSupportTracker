@@ -3,7 +3,7 @@ Weekend Production Support Tracker - Flask Backend
 Equivalent of server.js, runs locally without any cloud hosting.
 
 Install dependencies:
-    pip install flask flask-cors openpyxl azure-storage-blob
+    pip install flask flask-cors openpyxl
 
 Run:
     python app_Flask.py
@@ -13,7 +13,6 @@ import json
 import os
 import re
 import uuid
-import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,13 +22,6 @@ from werkzeug.utils import secure_filename
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import io
-
-# ── Azure Blob Storage (optional) ───────────────────────────
-try:
-    from azure.storage.blob import BlobServiceClient
-    AZURE_AVAILABLE = True
-except ImportError:
-    AZURE_AVAILABLE = False
 
 app = Flask(__name__)
 CORS(app)
@@ -53,70 +45,9 @@ changelogs = {}
 employees = []
 resource_upload_history = []
 
-# ── Azure Blob helpers ───────────────────────────────────────
-def _azure_client():
-    conn = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-    if not conn or not AZURE_AVAILABLE:
-        return None, None
-    try:
-        svc = BlobServiceClient.from_connection_string(conn)
-        container = os.environ.get("AZURE_STORAGE_CONTAINER", "weekend-support-data")
-        blob_name = os.environ.get("AZURE_STORAGE_BLOB_NAME", "data.json")
-        return svc.get_blob_client(container=container, blob=blob_name), container
-    except Exception:
-        return None, None
-
-
-def _load_from_azure():
-    client, _ = _azure_client()
-    if not client:
-        return None
-    try:
-        data = client.download_blob().readall()
-        return json.loads(data)
-    except Exception as e:
-        print(f"Azure load error: {e}")
-        return None
-
-
-def _save_to_azure(payload_str):
-    client, _ = _azure_client()
-    if not client:
-        return
-    try:
-        client.upload_blob(payload_str, overwrite=True, content_settings=None)
-    except Exception as e:
-        print(f"Azure save error: {e}")
-
-
-# Debounce: schedule Azure upload 2 s after last mutating call
-_azure_timer = None
-_azure_lock = threading.Lock()
-
-
-def _schedule_azure_save():
-    global _azure_timer
-    with _azure_lock:
-        if _azure_timer:
-            _azure_timer.cancel()
-        _azure_timer = threading.Timer(2.0, _do_azure_save)
-        _azure_timer.daemon = True
-        _azure_timer.start()
-
-
-def _do_azure_save():
-    payload = json.dumps({
-        "entries": entries,
-        "deletedItems": deleted_items,
-        "employees": employees,
-        "changelogs": changelogs,
-        "resourceUploadHistory": resource_upload_history,
-    }, indent=2)
-    _save_to_azure(payload)
-
-
 # ── Persistent save ──────────────────────────────────────────
 def save_data():
+    """Save all data to local JSON file."""
     payload = {
         "entries": entries,
         "deletedItems": deleted_items,
@@ -128,11 +59,10 @@ def save_data():
         DATA_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     except Exception as e:
         print(f"Failed to save data.json: {e}")
-    if AZURE_AVAILABLE and os.environ.get("AZURE_STORAGE_CONNECTION_STRING"):
-        _schedule_azure_save()
 
 
 def load_data_from_file():
+    """Load data from local JSON file."""
     try:
         if DATA_FILE.exists():
             raw = DATA_FILE.read_text(encoding="utf-8")

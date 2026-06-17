@@ -6,7 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const ExcelJS = require('exceljs');
-const azureStorage = require('./azure/repository');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,14 +33,10 @@ const upload = multer({
     },
 });
 
-// ── Persistent Store (Azure Blob Storage + local JSON file fallback) ────────
+// ── Persistent Store (Local JSON file) ────────
 //
-// Primary store : Azure Blob Storage  (weekend-support-data/data.json)
-// Fallback store: data.json on the local filesystem (useful for local dev)
-//
-// Every mutating API call writes to the local file immediately, then schedules
-// a debounced Azure Blob Storage upload (2 s) to batch rapid sequential saves
-// and avoid unnecessary network round-trips.
+// All application data is stored in a local data.json file.
+// Every mutating API call writes to the local file immediately.
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -64,11 +59,8 @@ function loadDataFromFile() {
     return null;
 }
 
-// Debounce timer — holds a reference to the pending Azure Blob Storage upload
-let _azureSaveTimer = null;
-
 function saveData() {
-    // Always write to the local JSON file immediately for fast, reliable durability
+    // Write to the local JSON file immediately for fast, reliable durability
     try {
         fs.writeFileSync(
             DATA_FILE,
@@ -77,17 +69,6 @@ function saveData() {
         );
     } catch (err) {
         console.error('Failed to save data.json:', err.message);
-    }
-
-    // Schedule a debounced Azure Blob Storage upload (batches rapid sequential writes)
-    if (azureStorage.isConfigured()) {
-        clearTimeout(_azureSaveTimer);
-        _azureSaveTimer = setTimeout(() => {
-            azureStorage
-                .saveData({ entries, deletedItems, employees, changelogs, resourceUploadHistory })
-                .then(ok => { if (!ok) console.warn('Azure Blob Storage save did not complete'); })
-                .catch(err => console.error('Azure Blob Storage scheduled save error:', err.message));
-        }, 2000);
     }
 }
 
@@ -948,19 +929,15 @@ if (fs.existsSync(frontendBuildPath)) {
 
 // ── Start server with async data load ────────────────────────
 async function startServer() {
-    // Load data: prefer Azure Blob Storage, fall back to local data.json
-    const azureData = await azureStorage.loadData();
+    // Load data from local data.json file
     const fileData = loadDataFromFile();
-    const data = azureData || fileData || { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
+    const data = fileData || { entries: {}, deletedItems: [], employees: null, changelogs: {}, resourceUploadHistory: [] };
 
     entries = data.entries || {};
     deletedItems = data.deletedItems || [];
     changelogs = data.changelogs || {};
     employees = data.employees || [];
     resourceUploadHistory = data.resourceUploadHistory || [];
-
-    // If employees is still empty (no resource list uploaded yet), start with empty —
-    // do NOT fall back to the hardcoded sample list so uploaded data is never overwritten.
 
     // If employees are loaded but no upload history exists (e.g. uploaded before history tracking),
     // synthesize a record so the UI shows the currently active list
@@ -983,17 +960,4 @@ async function startServer() {
 startServer().catch(err => {
     console.error('Failed to start server:', err);
     process.exit(1);
-});
-
-// Flush any pending Azure Blob Storage upload before the process exits
-process.on('SIGTERM', () => {
-    if (_azureSaveTimer) {
-        clearTimeout(_azureSaveTimer);
-        azureStorage
-            .saveData({ entries, deletedItems, employees, changelogs, resourceUploadHistory })
-            .catch(err => console.error('Shutdown Azure Blob save error:', err.message))
-            .finally(() => process.exit(0));
-    } else {
-        process.exit(0);
-    }
 });

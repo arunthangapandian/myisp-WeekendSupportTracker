@@ -1,14 +1,13 @@
 {
   "name": "myisp-weekend-support-tracker",
   "version": "1.0.0",
-  "description": "Weekend Production Support Details - Full Stack App",
+  "description": "Weekend Production Support Details - Full Stack App (Local Only)",
   "scripts": {
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",
     "build:frontend": "cd frontend && npm run build",
     "start": "node backend/server.js",
-    "build": "npm run install:backend && npm run install:frontend && npm run build:frontend",
-    "azure-deploy-build": "npm run install:backend && npm run install:frontend && npm run build:frontend"
+    "build": "npm run install:backend && npm run install:frontend && npm run build:frontend"
   },
   "engines": {
     "node": ">=18.0.0",
