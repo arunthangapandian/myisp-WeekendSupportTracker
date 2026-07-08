@@ -132,6 +132,7 @@ const HARDCODED_CAREER_LEVELS = {
     'vishnu.ramalingam': 9,
     'srinivasan.selvam': 7,
     'd.sampathkumar': 8,
+    'arun.thangapandian': 9,
 };
 
 // Auth validation – validates enterprise ID + password and returns career level.

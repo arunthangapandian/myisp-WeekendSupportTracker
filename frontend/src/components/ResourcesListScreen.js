@@ -71,10 +71,10 @@ export default function ResourcesListScreen() {
                 const wb = XLSX.read(data, { type: 'array' });
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
                 if (rows.length < 2) { addToast('Resource list file is empty', 'error'); return; }
-                // Col B(idx1)=Name, Col C(idx2)=Enterprise ID, Col D(idx3)=Career Level, Col I(idx8)=Supervisor
+                // Col B(idx1)=Enterprise ID, Col C(idx2)=Name, Col D(idx3)=Career Level, Col I(idx8)=Supervisor
                 const list = rows.slice(1).map(r => ({
-                    id: (String(r[2] || '').trim().toLowerCase()) || String(r[1] || '').trim().toLowerCase().replace(/\s+/g, '.'),
-                    name: String(r[1] || '').trim(),
+                    id: (String(r[1] || '').trim().toLowerCase()) || String(r[2] || '').trim().toLowerCase().replace(/\s+/g, '.'),
+                    name: String(r[2] || '').trim(),
                     careerLevel: String(r[3] || '').trim(),
                     supervisor: String(r[8] || '').trim(),
                 })).filter(emp => emp.name);
