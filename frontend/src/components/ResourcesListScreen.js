@@ -25,7 +25,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import HomeIcon from '@mui/icons-material/Home';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
 import PeopleIcon from '@mui/icons-material/People';
+import ConfirmDialog from './ConfirmDialog';
 
 /**
  * Resources List screen – manage the master employee resource file.
@@ -37,6 +39,7 @@ export default function ResourcesListScreen() {
     const [uploads, setUploads] = useState([]);
     const [employeeCount, setEmployeeCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const fileInputRef = useRef(null);
 
     const loadData = async () => {
@@ -104,6 +107,19 @@ export default function ResourcesListScreen() {
             URL.revokeObjectURL(url);
             addToast('Employee list exported', 'success');
         } catch { addToast('Export failed', 'error'); }
+    };
+
+    const handleDeleteUpload = async () => {
+        if (!confirmDelete) return;
+        try {
+            await api.deleteResourceUploadHistory(confirmDelete.id);
+            addToast('Upload history deleted', 'success');
+            setConfirmDelete(null);
+            loadData();
+        } catch (err) {
+            addToast(err.message || 'Delete failed', 'error');
+            setConfirmDelete(null);
+        }
     };
 
     const formatTimestamp = (ts) => {
@@ -212,6 +228,7 @@ export default function ResourcesListScreen() {
                                 <TableCell sx={{ fontWeight: 700, color: '#a5b4fc', fontSize: 12 }}>Uploaded File</TableCell>
                                 <TableCell sx={{ fontWeight: 700, color: '#a5b4fc', fontSize: 12 }}>Employees</TableCell>
                                 <TableCell sx={{ fontWeight: 700, color: '#a5b4fc', fontSize: 12 }}>Uploaded Date &amp; Time</TableCell>
+                                <TableCell sx={{ fontWeight: 700, color: '#a5b4fc', fontSize: 12 }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -242,12 +259,28 @@ export default function ResourcesListScreen() {
                                     </TableCell>
                                     <TableCell sx={{ color: '#34d399', fontSize: 12 }}>{u.count}</TableCell>
                                     <TableCell sx={{ color: '#a5b4fc', fontSize: 11 }}>{formatTimestamp(u.uploadedAt)}</TableCell>
+                                    <TableCell>
+                                        <Tooltip title="Delete upload history">
+                                            <IconButton size="small" onClick={() => setConfirmDelete(u)}
+                                                sx={{ color: '#ef4444', '&:hover': { color: '#dc2626' } }}>
+                                                <DeleteIcon sx={{ fontSize: 18 }} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </Box>
             )}
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                title="Delete Upload History?"
+                message={`Are you sure you want to delete the upload history for "${confirmDelete?.filename}"? This will only remove the history record, not the employee data.`}
+                onConfirm={handleDeleteUpload}
+                onCancel={() => setConfirmDelete(null)}
+            />
         </Box>
     );
 }

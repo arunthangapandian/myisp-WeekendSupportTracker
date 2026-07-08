@@ -153,8 +153,8 @@ app.post('/api/auth/validate', (req, res) => {
     // Check hardcoded map first (reliable, CSV-independent)
     if (Object.prototype.hasOwnProperty.call(HARDCODED_CAREER_LEVELS, id)) {
         const hardcodedCl = HARDCODED_CAREER_LEVELS[id];
-        if (hardcodedCl >= 10) {
-            return res.status(403).json({ error: 'Access denied. Career level 9 and below only.' });
+        if (hardcodedCl < 7 || hardcodedCl > 9) {
+            return res.status(403).json({ error: 'Access denied. Only Level 7, 8, and 9 users can login.' });
         }
         return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
     }
@@ -165,9 +165,14 @@ app.post('/api/auth/validate', (req, res) => {
     );
     const cl = emp ? parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10) : NaN;
 
-    // Block access for career level 10 and above when employee list is loaded
-    if (employees.length > 0 && emp && !isNaN(cl) && cl >= 10) {
-        return res.status(403).json({ error: 'Access denied. Career level 9 and below only.' });
+    // Only allow Level 7, 8, 9 users to login
+    if (employees.length > 0 && emp && !isNaN(cl) && (cl < 7 || cl > 9)) {
+        return res.status(403).json({ error: 'Access denied. Only Level 7, 8, and 9 users can login.' });
+    }
+
+    // If no employee record found in list, deny access
+    if (employees.length > 0 && !emp) {
+        return res.status(403).json({ error: 'Employee ID not found in resource list.' });
     }
 
     res.json({ valid: true, empId: id, careerLevel: isNaN(cl) ? null : cl });
@@ -189,6 +194,15 @@ app.get('/api/options/employees', (_r, res) => res.json(employees));
 // Get resource upload history
 app.get('/api/options/resource-upload-history', (_r, res) => {
     res.json([...resourceUploadHistory].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)));
+});
+
+// Delete resource upload history item
+app.delete('/api/options/resource-upload-history/:id', (req, res) => {
+    const idx = resourceUploadHistory.findIndex(h => h.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Upload history item not found' });
+    resourceUploadHistory.splice(idx, 1);
+    saveData();
+    res.json({ success: true });
 });
 
 // Replace employee directory from uploaded resource list (parsed on frontend)

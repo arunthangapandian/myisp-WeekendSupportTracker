@@ -88,6 +88,7 @@ const api = {
         }),
 
     getResourceUploadHistory: () => request(`${BASE}/options/resource-upload-history`),
+    deleteResourceUploadHistory: (id) => request(`${BASE}/options/resource-upload-history/${id}`, { method: 'DELETE' }),
 
     getExportUrl: (entryId) => `${BASE}/entries/${entryId}/export`,
     getTeamExportUrl: (entryId, teamId) => `${BASE}/entries/${entryId}/teams/${teamId}/export`,
