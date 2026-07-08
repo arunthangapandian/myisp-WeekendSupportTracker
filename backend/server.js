@@ -159,9 +159,9 @@ app.post('/api/auth/validate', (req, res) => {
         return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
     }
 
-    // Fall back to uploaded employee list
+    // Fall back to uploaded employee list (only match by Enterprise ID, not name)
     const emp = employees.find(e =>
-        (e.id || '').toLowerCase() === id || (e.name || '').toLowerCase() === id
+        (e.id || '').toLowerCase() === id
     );
     const cl = emp ? parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10) : NaN;
 
@@ -172,7 +172,7 @@ app.post('/api/auth/validate', (req, res) => {
 
     // If no employee record found in list, deny access
     if (employees.length > 0 && !emp) {
-        return res.status(403).json({ error: 'Employee ID not found in resource list.' });
+        return res.status(403).json({ error: 'Please Enter the correct Enterprise ID' });
     }
 
     res.json({ valid: true, empId: id, careerLevel: isNaN(cl) ? null : cl });

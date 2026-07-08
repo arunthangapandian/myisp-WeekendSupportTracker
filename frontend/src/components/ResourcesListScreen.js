@@ -278,8 +278,8 @@ export default function ResourcesListScreen() {
                 open={!!confirmDelete}
                 title="Delete Upload History?"
                 message={`Are you sure you want to delete the upload history for "${confirmDelete?.filename}"? This will only remove the history record, not the employee data.`}
-                onConfirm={handleDeleteUpload}
-                onCancel={() => setConfirmDelete(null)}
+                onYes={handleDeleteUpload}
+                onNo={() => setConfirmDelete(null)}
             />
         </Box>
     );

@@ -65,7 +65,7 @@ export default function LoginScreen() {
                             value={empId} onChange={handleEmpIdChange}
                             autoFocus size="small" sx={{ mb: 2 }}
                             autoComplete="username"
-                            helperText="Use your enterprise ID, not email"
+                            helperText="Use your enterprise ID only (not your name or email)"
                         />
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                         <Button type="submit" variant="contained" fullWidth size="large"
