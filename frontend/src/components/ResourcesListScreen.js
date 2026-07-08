@@ -260,11 +260,20 @@ export default function ResourcesListScreen() {
                                     <TableCell sx={{ color: '#34d399', fontSize: 12 }}>{u.count}</TableCell>
                                     <TableCell sx={{ color: '#a5b4fc', fontSize: 11 }}>{formatTimestamp(u.uploadedAt)}</TableCell>
                                     <TableCell>
-                                        <Tooltip title="Delete upload history">
-                                            <IconButton size="small" onClick={() => setConfirmDelete(u)}
-                                                sx={{ color: '#ef4444', '&:hover': { color: '#dc2626' } }}>
-                                                <DeleteIcon sx={{ fontSize: 18 }} />
-                                            </IconButton>
+                                        <Tooltip title={uploads.length <= 1 ? "Cannot delete the last resource list" : "Delete upload history"}>
+                                            <span>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => setConfirmDelete(u)}
+                                                    disabled={uploads.length <= 1}
+                                                    sx={{
+                                                        color: uploads.length <= 1 ? '#4b5563' : '#ef4444',
+                                                        '&:hover': { color: uploads.length <= 1 ? '#4b5563' : '#dc2626' },
+                                                        '&.Mui-disabled': { color: '#4b5563' }
+                                                    }}>
+                                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                                </IconButton>
+                                            </span>
                                         </Tooltip>
                                     </TableCell>
                                 </TableRow>
@@ -277,7 +286,7 @@ export default function ResourcesListScreen() {
             <ConfirmDialog
                 open={!!confirmDelete}
                 title="Delete Upload History?"
-                message={`Are you sure you want to delete the upload history for "${confirmDelete?.filename}"? This will only remove the history record, not the employee data.`}
+                message={`Are you sure you want to delete the upload history for "${confirmDelete?.filename}"? This will only remove the history record, not the employee data. Note: At least one resource list must remain in the system.`}
                 onYes={handleDeleteUpload}
                 onNo={() => setConfirmDelete(null)}
             />

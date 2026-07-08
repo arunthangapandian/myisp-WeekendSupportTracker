@@ -200,6 +200,10 @@ app.get('/api/options/resource-upload-history', (_r, res) => {
 app.delete('/api/options/resource-upload-history/:id', (req, res) => {
     const idx = resourceUploadHistory.findIndex(h => h.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Upload history item not found' });
+    // Prevent deletion of the last upload - at least one must remain
+    if (resourceUploadHistory.length <= 1) {
+        return res.status(400).json({ error: 'Cannot delete the last resource list. At least one upload must remain.' });
+    }
     resourceUploadHistory.splice(idx, 1);
     saveData();
     res.json({ success: true });

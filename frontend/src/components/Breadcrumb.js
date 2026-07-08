@@ -8,13 +8,13 @@ import HomeIcon from '@mui/icons-material/Home';
 import { formatDateLabel } from '../utils/helpers';
 
 /**
- * Breadcrumb: Home > Date > Team Name  (or)  Home > Date > History  (or)  Home > Date > Last Updated
+ * Breadcrumb: Home > Date > Team Name  (or)  Home > Date > Last Updated
  */
-export default function Breadcrumb({ showHistory, onBackFromHistory, showLastUpdated, onBackFromLastUpdated }) {
+export default function Breadcrumb({ showLastUpdated, onBackFromLastUpdated }) {
     const { currentEntry, selectedTeamId, navigateHome, navigateToEntry } = useAppContext();
     if (!currentEntry) return null;
 
-    const team = (!showHistory && !showLastUpdated && selectedTeamId)
+    const team = (!showLastUpdated && selectedTeamId)
         ? (currentEntry.teams || []).find(t => t.id === selectedTeamId)
         : null;
 
@@ -24,11 +24,10 @@ export default function Breadcrumb({ showHistory, onBackFromHistory, showLastUpd
                 onClick={navigateHome}>
                 <HomeIcon sx={{ fontSize: 16 }} /> Home
             </Link>
-            {(team || showHistory || showLastUpdated) ? (
+            {(team || showLastUpdated) ? (
                 <Link underline="hover" sx={{ cursor: 'pointer', color: '#a5b4fc' }}
                     onClick={() => {
-                        if (showHistory && onBackFromHistory) onBackFromHistory();
-                        else if (showLastUpdated && onBackFromLastUpdated) onBackFromLastUpdated();
+                        if (showLastUpdated && onBackFromLastUpdated) onBackFromLastUpdated();
                         else navigateToEntry(currentEntry.id);
                     }}>
                     {formatDateLabel(currentEntry.date)}
@@ -36,11 +35,6 @@ export default function Breadcrumb({ showHistory, onBackFromHistory, showLastUpd
             ) : (
                 <Typography sx={{ color: '#e0e7ff' }} fontSize={13} fontWeight={600}>
                     {formatDateLabel(currentEntry.date)}
-                </Typography>
-            )}
-            {showHistory && (
-                <Typography sx={{ color: '#fbbf24' }} fontSize={13} fontWeight={600}>
-                    📜 History
                 </Typography>
             )}
             {showLastUpdated && (

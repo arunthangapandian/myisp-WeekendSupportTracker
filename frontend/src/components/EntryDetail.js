@@ -7,14 +7,12 @@ import SummaryHeader from './SummaryHeader';
 import AddTeamForm from './AddTeamForm';
 import TeamCard from './TeamCard';
 import TeamDetail from './TeamDetail';
-import HistoryScreen from './HistoryScreen';
 import LastUpdatedScreen from './LastUpdatedScreen';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ComputerIcon from '@mui/icons-material/Computer';
 import AddIcon from '@mui/icons-material/Add';
-import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import HomeIcon from '@mui/icons-material/Home';
@@ -27,11 +25,10 @@ import HomeIcon from '@mui/icons-material/Home';
 export default function EntryDetail({ onRefresh }) {
     const { currentEntry, selectedTeamId, view, setView, navigateToResources } = useAppContext();
     const { isLeadOnly, empId } = useAuth();
-    const [showHistory, setShowHistory] = useState(false);
     const [showLastUpdated, setShowLastUpdated] = useState(false);
 
-    // Reset history/lastUpdated view when switching entries
-    useEffect(() => { setShowHistory(false); setShowLastUpdated(false); }, [currentEntry?.id]);
+    // Reset lastUpdated view when switching entries
+    useEffect(() => { setShowLastUpdated(false); }, [currentEntry?.id]);
 
     // No entry selected — show welcome
     if (!currentEntry) {
@@ -80,10 +77,9 @@ export default function EntryDetail({ onRefresh }) {
 
     return (
         <Box>
-            {/* Top bar: Breadcrumb on left, Refresh + History buttons on right */}
+            {/* Top bar: Breadcrumb on left, Refresh button on right */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                <Breadcrumb showHistory={showHistory} onBackFromHistory={() => setShowHistory(false)}
-                    showLastUpdated={showLastUpdated} onBackFromLastUpdated={() => setShowLastUpdated(false)} />
+                <Breadcrumb showLastUpdated={showLastUpdated} onBackFromLastUpdated={() => setShowLastUpdated(false)} />
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Button
                         variant="outlined"
@@ -97,22 +93,6 @@ export default function EntryDetail({ onRefresh }) {
                         }}
                     >
                         Refresh
-                    </Button>
-                    <Button
-                        variant={showHistory ? 'contained' : 'outlined'}
-                        size="small"
-                        startIcon={<HistoryIcon />}
-                        onClick={() => setShowHistory(true)}
-                        sx={{
-                            textTransform: 'none', fontWeight: 600, fontSize: 13,
-                            color: showHistory ? '#fff' : '#fbbf24',
-                            borderColor: '#d97706',
-                            bgcolor: showHistory ? '#d97706' : 'transparent',
-                            borderRadius: 1.5, px: 1.5,
-                            '&:hover': { bgcolor: '#d97706', color: '#fff', borderColor: '#d97706' },
-                        }}
-                    >
-                        History
                     </Button>
                     {!isLeadOnly && (
                         <Button
@@ -134,9 +114,7 @@ export default function EntryDetail({ onRefresh }) {
                 </Box>
             </Box>
 
-            {showHistory ? (
-                <HistoryScreen entryId={currentEntry.id} onBack={() => setShowHistory(false)} />
-            ) : showLastUpdated ? (
+            {showLastUpdated ? (
                 <LastUpdatedScreen onBack={() => setShowLastUpdated(false)} />
             ) : view === 'team' && selectedTeamId ? (
                 <TeamDetail entryId={currentEntry.id} teamId={selectedTeamId} onRefresh={onRefresh} />
