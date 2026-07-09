@@ -80,10 +80,10 @@ export default function ResourcesListScreen() {
                     const level = String(r[3] || '').trim();
                     const cl = String(r[4] || '').trim();
                     const supervisor = String(r[5] || '').trim();
-                    
+
                     // Parse level as number (7, 8, 9, 10, etc.)
                     const levelNum = parseInt(level, 10);
-                    
+
                     return {
                         id: enterpriseId || name.toLowerCase().replace(/\s+/g, '.'),
                         name: name,
@@ -93,7 +93,7 @@ export default function ResourcesListScreen() {
                         status: status,
                     };
                 }).filter(emp => emp.name && emp.id);
-                
+
                 if (list.length === 0) { addToast('No valid employee rows found', 'error'); return; }
                 await api.uploadEmployeeList(list, empId, originalName);
                 addToast(`Resource list uploaded: ${list.length} employees`, 'success');
@@ -113,11 +113,11 @@ export default function ResourcesListScreen() {
             if (!list || list.length === 0) { addToast('No employee data to export', 'warning'); return; }
             const header = ['Status', 'Enterprise ID', 'Resource full Name', 'Level', 'CL', 'Workday Supervisor'];
             const rows = [header, ...list.map(e => [
-                e.status || 'Active', 
-                e.id || '', 
-                e.name || '', 
-                e.level || '', 
-                e.careerLevel || '', 
+                e.status || 'Active',
+                e.id || '',
+                e.name || '',
+                e.level || '',
+                e.careerLevel || '',
                 e.supervisor || ''
             ])];
             const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');

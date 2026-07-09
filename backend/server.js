@@ -164,7 +164,7 @@ app.post('/api/auth/validate', (req, res) => {
     const emp = employees.find(e =>
         (e.id || '').toLowerCase() === id
     );
-    
+
     // Get level from the uploaded resource list (prefer 'level' field, fallback to parsing 'careerLevel')
     let cl = NaN;
     if (emp) {
