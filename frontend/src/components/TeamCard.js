@@ -43,11 +43,8 @@ export default function TeamCard({ team, entryId, onRefresh }) {
     const [editLeadName, setEditLeadName] = useState(team.leadName);
     const [saving, setSaving] = useState(false);
 
-    // Lead suggestions: CL 9 and below (supervisors/leads)
-    const leadOptions = employees.filter(e => {
-        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl <= 9;
-    });
+    // Lead suggestions: all employees from uploaded resource list
+    const leadOptions = employees.filter(e => e.name && e.id);
 
     const getLeadSuggestions = (input) => {
         if (!input || input.length < 2) return [];

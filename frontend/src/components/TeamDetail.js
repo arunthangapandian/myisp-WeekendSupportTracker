@@ -181,11 +181,8 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     if (!team) return <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>Team not found</Typography>;
 
-    /** Only employees with career level 9 and above (numeric) */
-    const eligibleEmployees = employees.filter(e => {
-        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl >= 9;
-    });
+    /** All employees from uploaded resource list (show all levels in Name dropdown) */
+    const eligibleEmployees = employees.filter(e => e.name && e.id);
 
     /** Lookup career level from employee directory by name or ID */
     const lookupCareerLevel = (name) => {

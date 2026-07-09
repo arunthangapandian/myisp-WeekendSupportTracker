@@ -63,8 +63,17 @@ export default function Sidebar() {
         }).catch(() => { });
     }, []);
 
-    // Release owners: all employees from uploaded resource list
-    const ownerOptions = employees.filter(e => e.name && e.id);
+    // Release owners: Only Level 7 and 8 users
+    const ownerOptions = employees.filter(e => {
+        if (!e.name || !e.id) return false;
+        // Check level field first (preferred)
+        if (e.level !== null && e.level !== undefined) {
+            return e.level === 7 || e.level === 8;
+        }
+        // Fallback to parsing careerLevel
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && (cl === 7 || cl === 8);
+    });
 
     // Load deleted items count
     useEffect(() => {

@@ -55,20 +55,29 @@ export default function CreateEntryForm() {
         );
     }
 
-    // Show all employees from uploaded resource list
-    const releaseOwnerOptions = employees.filter(e => e.name && e.id);
+    // Release Owner dropdown: Only Level 7 and 8 users
+    const releaseOwnerOptions = employees.filter(e => {
+        if (!e.name || !e.id) return false;
+        // Check level field first (preferred)
+        if (e.level !== null && e.level !== undefined) {
+            return e.level === 7 || e.level === 8;
+        }
+        // Fallback to parsing careerLevel
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && (cl === 7 || cl === 8);
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!releaseOwner) { setError('Release Owner is required'); return; }
         if (!date) { setError('Date is required'); return; }
-        // Validate against resource list
+        // Validate against resource list (only Level 7 and 8)
         if (releaseOwnerOptions.length > 0) {
             const valid = releaseOwnerOptions.some(emp =>
                 emp.name.toLowerCase() === releaseOwner.trim().toLowerCase() ||
                 emp.id.toLowerCase() === releaseOwner.trim().toLowerCase()
             );
-            if (!valid) { setError('Enter valid Name from the Resource List'); return; }
+            if (!valid) { setError('Enter valid Level 7 or 8 user from Resource List'); return; }
         }
         setSubmitting(true);
         setLoading(true);
