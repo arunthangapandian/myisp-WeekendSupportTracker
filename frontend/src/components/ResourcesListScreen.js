@@ -71,13 +71,29 @@ export default function ResourcesListScreen() {
                 const wb = XLSX.read(data, { type: 'array' });
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
                 if (rows.length < 2) { addToast('Resource list file is empty', 'error'); return; }
-                // Col B(idx1)=Enterprise ID, Col C(idx2)=Name, Col D(idx3)=Career Level, Col I(idx8)=Supervisor
-                const list = rows.slice(1).map(r => ({
-                    id: (String(r[1] || '').trim().toLowerCase()) || String(r[2] || '').trim().toLowerCase().replace(/\s+/g, '.'),
-                    name: String(r[2] || '').trim(),
-                    careerLevel: String(r[3] || '').trim(),
-                    supervisor: String(r[8] || '').trim(),
-                })).filter(emp => emp.name);
+                // New format: Col A(idx0)=Status, Col B(idx1)=Enterprise ID, Col C(idx2)=Resource full Name, 
+                // Col D(idx3)=Level, Col E(idx4)=CL, Col F(idx5)=Workday Supervisor
+                const list = rows.slice(1).map(r => {
+                    const status = String(r[0] || '').trim();
+                    const enterpriseId = String(r[1] || '').trim().toLowerCase();
+                    const name = String(r[2] || '').trim();
+                    const level = String(r[3] || '').trim();
+                    const cl = String(r[4] || '').trim();
+                    const supervisor = String(r[5] || '').trim();
+                    
+                    // Parse level as number (7, 8, 9, 10, etc.)
+                    const levelNum = parseInt(level, 10);
+                    
+                    return {
+                        id: enterpriseId || name.toLowerCase().replace(/\s+/g, '.'),
+                        name: name,
+                        level: isNaN(levelNum) ? null : levelNum,
+                        careerLevel: cl,
+                        supervisor: supervisor,
+                        status: status,
+                    };
+                }).filter(emp => emp.name && emp.id);
+                
                 if (list.length === 0) { addToast('No valid employee rows found', 'error'); return; }
                 await api.uploadEmployeeList(list, empId, originalName);
                 addToast(`Resource list uploaded: ${list.length} employees`, 'success');
@@ -95,8 +111,15 @@ export default function ResourcesListScreen() {
         try {
             const list = await api.getEmployees();
             if (!list || list.length === 0) { addToast('No employee data to export', 'warning'); return; }
-            const header = ['ID', 'Name', 'Career Level', 'Supervisor'];
-            const rows = [header, ...list.map(e => [e.id || '', e.name || '', e.careerLevel || '', e.supervisor || ''])];
+            const header = ['Status', 'Enterprise ID', 'Resource full Name', 'Level', 'CL', 'Workday Supervisor'];
+            const rows = [header, ...list.map(e => [
+                e.status || 'Active', 
+                e.id || '', 
+                e.name || '', 
+                e.level || '', 
+                e.careerLevel || '', 
+                e.supervisor || ''
+            ])];
             const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);

@@ -160,11 +160,20 @@ app.post('/api/auth/validate', (req, res) => {
         return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
     }
 
-    // Fall back to uploaded employee list (only match by Enterprise ID, not name)
+    // Fall back to uploaded employee list (match by Enterprise ID)
     const emp = employees.find(e =>
         (e.id || '').toLowerCase() === id
     );
-    const cl = emp ? parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10) : NaN;
+    
+    // Get level from the uploaded resource list (prefer 'level' field, fallback to parsing 'careerLevel')
+    let cl = NaN;
+    if (emp) {
+        if (emp.level !== null && emp.level !== undefined) {
+            cl = parseInt(emp.level, 10);
+        } else if (emp.careerLevel) {
+            cl = parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        }
+    }
 
     // Only allow Level 7, 8, 9 users to login
     if (employees.length > 0 && emp && !isNaN(cl) && (cl < 7 || cl > 9)) {

@@ -26,8 +26,8 @@ export function AuthProvider({ children }) {
 
     /** Career level 9 = Lead: restricted view/edit access */
     const isLeadOnly = careerLevel !== null && careerLevel === 9;
-    /** Career level 8 and below = full access */
-    const isFullAccess = careerLevel === null || careerLevel <= 8;
+    /** Career level 7 and 8 = full access to all features */
+    const isFullAccess = careerLevel === null || (careerLevel >= 7 && careerLevel <= 8);
 
     const login = (id, cl) => {
         setEmpId(id.trim());

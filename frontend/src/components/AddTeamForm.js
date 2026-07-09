@@ -31,11 +31,8 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Lead Name: career level 9 and below only
-    const leadOptions = employees.filter(e => {
-        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl <= 9;
-    });
+    // Lead Name: show all employees from uploaded resource list
+    const leadOptions = employees.filter(e => e.name && e.id);
 
     const getLeadSuggestions = (input) => {
         if (!input || input.length < 2) return [];
@@ -49,13 +46,13 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
         e.preventDefault();
         if (!teamName.trim()) { setError('Team Name is required'); return; }
         if (!leadName.trim()) { setError('Lead Name is required'); return; }
-        // Validate lead name against resource list (9 and below)
+        // Validate lead name against resource list
         if (leadOptions.length > 0) {
             const valid = leadOptions.some(emp =>
                 emp.name.toLowerCase() === leadName.trim().toLowerCase() ||
                 emp.id.toLowerCase() === leadName.trim().toLowerCase()
             );
-            if (!valid) { setError('Enter valid Name'); return; }
+            if (!valid) { setError('Enter valid Name from Resource List'); return; }
         }
         setLoading(true);
         try {
@@ -78,15 +75,19 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                 // Match against lead's enterprise ID or full name
                 return sv === supervisorId.toLowerCase() || sv === supervisorName;
             }).filter(e => {
-                // Only include career level 9 and above
+                // Only include Level 9 and above (or if level not set, include all)
+                if (e.level !== null && e.level !== undefined) {
+                    return e.level >= 9;
+                }
+                // Fallback to careerLevel parsing
                 const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-                return !isNaN(cl) && cl >= 9;
+                return isNaN(cl) || cl >= 9;
             });
 
             if (subordinates.length > 0) {
                 const items = subordinates.map(e => ({
                     name: e.name,
-                    careerLevel: e.careerLevel || '',
+                    careerLevel: e.careerLevel || (e.level ? `Level ${e.level}` : ''),
                     supervisor: e.supervisor || '',
                     allowanceCompoff: 'Compoff',
                     time: '11:00 AM - ',
@@ -182,7 +183,9 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
                                     <li {...props} key={o.id}>
                                         <Box>
                                             <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{o.name}</Typography>
-                                            {o.careerLevel && <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>{o.careerLevel}</Typography>}
+                                            <Typography sx={{ fontSize: 10, color: '#a5b4fc' }}>
+                                                {o.level ? `Level ${o.level}` : (o.careerLevel || '')}
+                                            </Typography>
                                         </Box>
                                     </li>
                                 )}

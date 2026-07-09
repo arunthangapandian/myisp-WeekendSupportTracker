@@ -19,9 +19,10 @@ import CloseIcon from '@mui/icons-material/Close';
 /**
  * "Create New Release Details" form.
  * Fields: Release Owner (dropdown), Date (no past dates), Sanity Sheet upload.
+ * Only Level 7 and 8 users can access this form.
  */
 export default function CreateEntryForm() {
-    const { empId } = useAuth();
+    const { empId, isLeadOnly, careerLevel } = useAuth();
     const { addToast, setLoading, navigateToEntry, setEntries, navigateHome, employees } = useAppContext();
 
     const [releaseOwner, setReleaseOwner] = useState('');
@@ -32,23 +33,42 @@ export default function CreateEntryForm() {
 
     const today = getTodayStr();
 
-    // Release owners: career level 9 and below
-    const releaseOwnerOptions = employees.filter(e => {
-        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl <= 9;
-    });
+    // Block Level 9 users from accessing this form
+    if (isLeadOnly) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
+                <Card sx={{ maxWidth: 500, width: '100%', borderRadius: 3, bgcolor: '#1a1744', border: '1px solid #312e81' }}>
+                    <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: '#fbbf24' }}>
+                            🚫 Access Denied
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#e0e7ff', mb: 3 }}>
+                            Level 9 users cannot create new releases. Only Level 7 and 8 users have access to this feature.
+                        </Typography>
+                        <Button variant="contained" onClick={navigateHome}
+                            sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
+                            Back to Home
+                        </Button>
+                    </CardContent>
+                </Card>
+            </Box>
+        );
+    }
+
+    // Show all employees from uploaded resource list
+    const releaseOwnerOptions = employees.filter(e => e.name && e.id);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!releaseOwner) { setError('Release Owner is required'); return; }
         if (!date) { setError('Date is required'); return; }
-        // Validate against resource list (career level 9 and below only)
+        // Validate against resource list
         if (releaseOwnerOptions.length > 0) {
             const valid = releaseOwnerOptions.some(emp =>
                 emp.name.toLowerCase() === releaseOwner.trim().toLowerCase() ||
                 emp.id.toLowerCase() === releaseOwner.trim().toLowerCase()
             );
-            if (!valid) { setError('Enter valid Name'); return; }
+            if (!valid) { setError('Enter valid Name from the Resource List'); return; }
         }
         setSubmitting(true);
         setLoading(true);
@@ -105,9 +125,10 @@ export default function CreateEntryForm() {
                                 <li {...props} key={o.id}>
                                     <Box>
                                         <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{o.name}</Typography>
-                                        {o.careerLevel && (
-                                            <Typography sx={{ fontSize: 11, color: '#a5b4fc' }}>Level {o.careerLevel}{o.supervisor ? ` • ${o.supervisor}` : ''}</Typography>
-                                        )}
+                                        <Typography sx={{ fontSize: 11, color: '#a5b4fc' }}>
+                                            {o.level ? `Level ${o.level}` : (o.careerLevel || '')}
+                                            {o.supervisor ? ` • ${o.supervisor}` : ''}
+                                        </Typography>
                                     </Box>
                                 </li>
                             )}

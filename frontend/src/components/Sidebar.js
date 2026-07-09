@@ -63,11 +63,8 @@ export default function Sidebar() {
         }).catch(() => { });
     }, []);
 
-    // Release owners: career level 9 and below only
-    const ownerOptions = employees.filter(e => {
-        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && cl <= 9;
-    });
+    // Release owners: all employees from uploaded resource list
+    const ownerOptions = employees.filter(e => e.name && e.id);
 
     // Load deleted items count
     useEffect(() => {
