@@ -167,7 +167,7 @@ app.post('/api/auth/validate', (req, res) => {
 
     // Find user in uploaded employee list (match by Enterprise ID)
     const emp = employees.find(e => (e.id || '').toLowerCase() === id);
-    
+
     // User not found in resource list
     if (!emp) {
         return res.status(403).json({ error: 'Access denied. Enterprise ID not found in Resource List.' });
