@@ -160,32 +160,39 @@ app.post('/api/auth/validate', (req, res) => {
         return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
     }
 
-    // Fall back to uploaded employee list (match by Enterprise ID)
-    const emp = employees.find(e =>
-        (e.id || '').toLowerCase() === id
-    );
+    // Resource list must be uploaded for non-hardcoded users
+    if (employees.length === 0) {
+        return res.status(403).json({ error: 'Access denied. Please upload the Resource List first.' });
+    }
+
+    // Find user in uploaded employee list (match by Enterprise ID)
+    const emp = employees.find(e => (e.id || '').toLowerCase() === id);
+    
+    // User not found in resource list
+    if (!emp) {
+        return res.status(403).json({ error: 'Access denied. Enterprise ID not found in Resource List.' });
+    }
 
     // Get level from the uploaded resource list (prefer 'level' field, fallback to parsing 'careerLevel')
     let cl = NaN;
-    if (emp) {
-        if (emp.level !== null && emp.level !== undefined) {
-            cl = parseInt(emp.level, 10);
-        } else if (emp.careerLevel) {
-            cl = parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        }
+    if (emp.level !== null && emp.level !== undefined) {
+        cl = parseInt(emp.level, 10);
+    } else if (emp.careerLevel) {
+        cl = parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+    }
+
+    // Level could not be determined
+    if (isNaN(cl)) {
+        return res.status(403).json({ error: 'Access denied. Level information not available for this user.' });
     }
 
     // Only allow Level 7, 8, 9 users to login
-    if (employees.length > 0 && emp && !isNaN(cl) && (cl < 7 || cl > 9)) {
+    if (cl < 7 || cl > 9) {
         return res.status(403).json({ error: 'Access denied. Only Level 7, 8, and 9 users can login.' });
     }
 
-    // If no employee record found in list, deny access
-    if (employees.length > 0 && !emp) {
-        return res.status(403).json({ error: 'Please Enter the correct Enterprise ID' });
-    }
-
-    res.json({ valid: true, empId: id, careerLevel: isNaN(cl) ? null : cl });
+    // Login successful
+    res.json({ valid: true, empId: id, careerLevel: cl });
 });
 
 app.get('/api/options/release-owners', (_r, res) => res.json(releaseOwners));
