@@ -31,8 +31,17 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Lead Name: show all employees from uploaded resource list
-    const leadOptions = employees.filter(e => e.name && e.id);
+    // Lead Name: show only Level 7, 8, and 9 users from uploaded resource list
+    const leadOptions = employees.filter(e => {
+        if (!e.name || !e.id) return false;
+        // Check level field first (preferred)
+        if (e.level !== null && e.level !== undefined) {
+            return e.level === 7 || e.level === 8 || e.level === 9;
+        }
+        // Fallback to parsing careerLevel
+        const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+        return !isNaN(cl) && (cl === 7 || cl === 8 || cl === 9);
+    });
 
     const getLeadSuggestions = (input) => {
         if (!input || input.length < 2) return [];
@@ -87,6 +96,7 @@ export default function AddTeamForm({ entryId, onTeamAdded }) {
             if (subordinates.length > 0) {
                 const items = subordinates.map(e => ({
                     name: e.name,
+                    level: e.level,
                     careerLevel: e.careerLevel || (e.level ? `Level ${e.level}` : ''),
                     supervisor: e.supervisor || '',
                     allowanceCompoff: 'Compoff',

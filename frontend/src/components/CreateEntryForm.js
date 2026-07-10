@@ -19,7 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 /**
  * "Create New Release Details" form.
  * Fields: Release Owner (dropdown), Date (no past dates), Sanity Sheet upload.
- * Only Level 7 and 8 users can access this form.
+ * Only Level 7, 8, and 9 users can access this form.
  */
 export default function CreateEntryForm() {
     const { empId, isLeadOnly, careerLevel } = useAuth();
@@ -55,16 +55,16 @@ export default function CreateEntryForm() {
         );
     }
 
-    // Release Owner dropdown: Only Level 7 and 8 users
+    // Release Owner dropdown: Only Level 7, 8, and 9 users
     const releaseOwnerOptions = employees.filter(e => {
         if (!e.name || !e.id) return false;
         // Check level field first (preferred)
         if (e.level !== null && e.level !== undefined) {
-            return e.level === 7 || e.level === 8;
+            return e.level === 7 || e.level === 8 || e.level === 9;
         }
         // Fallback to parsing careerLevel
         const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && (cl === 7 || cl === 8);
+        return !isNaN(cl) && (cl === 7 || cl === 8 || cl === 9);
     });
 
     const handleSubmit = async (e) => {
@@ -77,7 +77,7 @@ export default function CreateEntryForm() {
                 emp.name.toLowerCase() === releaseOwner.trim().toLowerCase() ||
                 emp.id.toLowerCase() === releaseOwner.trim().toLowerCase()
             );
-            if (!valid) { setError('Enter valid Level 7 or 8 user from Resource List'); return; }
+            if (!valid) { setError('Enter valid Level 7, 8, or 9 user from Resource List'); return; }
         }
         setSubmitting(true);
         setLoading(true);

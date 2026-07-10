@@ -22,6 +22,35 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+/** Get numeric level - prioritize level field, fallback to parsing careerLevel */
+function getNumericLevel(item) {
+    // First, check if there's a numeric level field
+    if (item.level !== null && item.level !== undefined) {
+        return item.level;
+    }
+    // Fallback: try to parse careerLevel string
+    const careerLevel = item.careerLevel;
+    if (!careerLevel) return '—';
+    // If it starts with "Level", extract the number
+    if (careerLevel.toLowerCase().includes('level')) {
+        const num = parseInt(String(careerLevel).replace(/[^0-9]/g, ''), 10);
+        return isNaN(num) ? '—' : num;
+    }
+    // Map common abbreviations to numeric levels
+    const levelMap = {
+        'analyst': 10,
+        'senior analyst': 9,
+        'se': 9,
+        'consultant': 8,
+        'sse': 8,
+        'manager': 7,
+        'senior manager': 7,
+        'associate director': 7,
+    };
+    const lower = careerLevel.toLowerCase().trim();
+    return levelMap[lower] || careerLevel;
+}
+
 /**
  * Deleted Items screen - shows all soft-deleted entries, teams, and line items.
  * Features: Recover individual items, permanent delete, select all + delete all.
@@ -203,7 +232,7 @@ export default function DeletedItems({ onRefresh }) {
                                         )}
                                         {item.type === 'lineItem' && (
                                             <Typography variant="caption" color="text.secondary">
-                                                Team: {item.parentInfo?.teamName}, Level: {item.data?.careerLevel || '—'},
+                                                Team: {item.parentInfo?.teamName}, Level: {getNumericLevel(item.data || {})},
                                                 {' '}{item.data?.allowanceCompoff}
                                             </Typography>
                                         )}

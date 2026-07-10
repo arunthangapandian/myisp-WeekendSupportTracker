@@ -117,8 +117,8 @@ function getSupportTypeUI(timeStr) {
  * Career Level column removed per user request.
  */
 export default function TeamDetail({ entryId, teamId, onRefresh }) {
-    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback, employees, hasUnsavedChanges } = useAppContext();
-    const { empId } = useAuth();
+    const { currentEntry, addToast, registerUnsavedCheck, unregisterUnsavedCheck, registerSaveCallback, unregisterSaveCallback, employees, hasUnsavedChanges, navigateHome } = useAppContext();
+    const { empId, isLeadOnly } = useAuth();
     const team = currentEntry?.teams?.find(t => t.id === teamId);
 
     const [lineItems, setLineItems] = useState([]);
@@ -181,6 +181,33 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     if (!team) return <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>Team not found</Typography>;
 
+    // Access control: Level 9 users can only view teams where they are the Lead
+    if (isLeadOnly && team) {
+        const leadLower = (team.leadName || '').toLowerCase().trim();
+        const empIdLower = (empId || '').toLowerCase().trim();
+        const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
+        const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
+        const hasAccess = leadLower === empIdLower || leadLower === empNameLower;
+
+        if (!hasAccess) {
+            return (
+                <Box sx={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    justifyContent: 'center', height: '50vh', textAlign: 'center'
+                }}>
+                    <Typography variant="h6" sx={{ color: '#fbbf24', mb: 2 }}>🚫 Access Denied</Typography>
+                    <Typography variant="body2" sx={{ color: '#a5b4fc', mb: 3 }}>
+                        You can only view teams where you are the Lead.
+                    </Typography>
+                    <Button variant="contained" onClick={navigateHome}
+                        sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
+                        Back to Home
+                    </Button>
+                </Box>
+            );
+        }
+    }
+
     /** All employees from uploaded resource list (show all levels in Name dropdown) */
     const eligibleEmployees = employees.filter(e => e.name && e.id);
 
@@ -237,6 +264,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         const emp = lookupEmployee(trimmed);
         setLineItems(prev => [...prev, {
             id: `temp-${Date.now()}`, name: emp ? emp.name : trimmed,
+            level: emp ? emp.level : null,
             careerLevel: emp ? (emp.careerLevel || '') : '', supervisor: emp ? (emp.supervisor || '') : '',
             allowanceCompoff: 'Compoff', time: '11:00 AM - ', notes: '',
         }]);
@@ -318,6 +346,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     // Auto-lookup from resource list (10+ only)
                     const empRecord = lookupEmployee(name);
                     if (!cl && empRecord) cl = empRecord.careerLevel || '';
+                    const levelNum = empRecord ? empRecord.level : null;
                     // Skip employees with career level below 9
                     const clNum = parseInt(String(cl || '').replace(/[^0-9]/g, ''), 10);
                     if (!isNaN(clNum) && clNum < 9) { skippedLowLevel.push(name); return; }
@@ -371,6 +400,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     if (existingIdx !== -1) {
                         lineItems[existingIdx] = {
                             ...lineItems[existingIdx], name,
+                            level: levelNum !== null ? levelNum : lineItems[existingIdx].level,
                             careerLevel: cl || lineItems[existingIdx].careerLevel,
                             supervisor: sv || lineItems[existingIdx].supervisor || '',
                             allowanceCompoff: ac,
@@ -378,7 +408,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         };
                         overwritten.push(name);
                     } else {
-                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, careerLevel: cl, supervisor: sv, allowanceCompoff: ac, time: time || '' });
+                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, level: levelNum, careerLevel: cl, supervisor: sv, allowanceCompoff: ac, time: time || '' });
                     }
                 });
 

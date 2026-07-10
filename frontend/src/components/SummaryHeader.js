@@ -84,6 +84,35 @@ function calcTotalHoursCSV(timeStr) {
     return `${hrs % 1 === 0 ? hrs : hrs.toFixed(1)} hrs`;
 }
 
+/** Get numeric level - prioritize level field, fallback to parsing careerLevel */
+function getNumericLevel(lineItem) {
+    // First, check if there's a numeric level field
+    if (lineItem.level !== null && lineItem.level !== undefined) {
+        return lineItem.level;
+    }
+    // Fallback: try to parse careerLevel string
+    const careerLevel = lineItem.careerLevel;
+    if (!careerLevel) return '—';
+    // If it starts with "Level", extract the number
+    if (careerLevel.toLowerCase().includes('level')) {
+        const num = parseInt(String(careerLevel).replace(/[^0-9]/g, ''), 10);
+        return isNaN(num) ? '—' : num;
+    }
+    // Map common abbreviations to numeric levels
+    const levelMap = {
+        'analyst': 10,
+        'senior analyst': 9,
+        'se': 9,
+        'consultant': 8,
+        'sse': 8,
+        'manager': 7,
+        'senior manager': 7,
+        'associate director': 7,
+    };
+    const lower = careerLevel.toLowerCase().trim();
+    return levelMap[lower] || careerLevel;
+}
+
 export default function SummaryHeader({ entry, onRefresh }) {
     const { addToast } = useAppContext();
     const { empId, isLeadOnly } = useAuth();
@@ -204,7 +233,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         <TableRow key={li.id}>
                                             <TableCell>{i + 1}</TableCell>
                                             <TableCell>{li.name}</TableCell>
-                                            <TableCell>{li.careerLevel || '—'}</TableCell>
+                                            <TableCell>{getNumericLevel(li)}</TableCell>
                                             <TableCell>{li.supervisor || '—'}</TableCell>
                                             <TableCell>{li.teamName}</TableCell>
                                             <TableCell>{li.leadName}</TableCell>
@@ -252,7 +281,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                             <TableRow key={li.id}>
                                                 <TableCell>{i + 1}</TableCell>
                                                 <TableCell>{li.name}</TableCell>
-                                                <TableCell>{li.careerLevel || '—'}</TableCell>
+                                                <TableCell>{getNumericLevel(li)}</TableCell>
                                                 <TableCell>{li.supervisor || '—'}</TableCell>
                                                 <TableCell>{li.teamName}</TableCell>
                                                 <TableCell>{li.leadName}</TableCell>
@@ -297,7 +326,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         <TableRow key={li.id}>
                                             <TableCell>{i + 1}</TableCell>
                                             <TableCell>{li.name}</TableCell>
-                                            <TableCell>{li.careerLevel || '—'}</TableCell>
+                                            <TableCell>{getNumericLevel(li)}</TableCell>
                                             <TableCell>{li.supervisor || '—'}</TableCell>
                                             <TableCell>{li.teamName}</TableCell>
                                             <TableCell>{li.leadName}</TableCell>

@@ -393,9 +393,10 @@ app.post('/api/entries/:eid/teams/:tid/bulk-line-items', (req, res) => {
     if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
     const added = [];
     const updated = [];
-    items.forEach(({ name, careerLevel, supervisor, allowanceCompoff }) => {
+    items.forEach(({ name, level, careerLevel, supervisor, allowanceCompoff }) => {
         if (!name || !name.trim()) return;
         const trimmedName = name.trim();
+        const lvl = level !== undefined && level !== null ? level : null;
         const cl = careerLevel || '';
         const sv = supervisor || '';
         const ac = allowanceCompoff || 'Compoff';
@@ -407,13 +408,14 @@ app.post('/api/entries/:eid/teams/:tid/bulk-line-items', (req, res) => {
             team.lineItems[existingIdx] = {
                 ...team.lineItems[existingIdx],
                 name: trimmedName,
+                level: lvl !== null ? lvl : team.lineItems[existingIdx].level,
                 careerLevel: cl || team.lineItems[existingIdx].careerLevel,
                 supervisor: sv || team.lineItems[existingIdx].supervisor || '',
                 allowanceCompoff: ac,
             };
             updated.push(team.lineItems[existingIdx]);
         } else {
-            const item = { id: uuidv4(), name: trimmedName, careerLevel: cl, supervisor: sv, allowanceCompoff: ac };
+            const item = { id: uuidv4(), name: trimmedName, level: lvl, careerLevel: cl, supervisor: sv, allowanceCompoff: ac };
             team.lineItems.push(item);
             added.push(item);
         }
@@ -461,7 +463,9 @@ app.put('/api/entries/:eid/teams/:tid/line-items', (req, res) => {
     if (!Array.isArray(items)) return res.status(400).json({ error: 'items array required' });
     const prevMemberCount = team.lineItems.length;
     team.lineItems = items.map(li => ({
-        id: li.id || uuidv4(), name: li.name || '', careerLevel: li.careerLevel || '',
+        id: li.id || uuidv4(), name: li.name || '',
+        level: li.level !== undefined && li.level !== null ? li.level : null,
+        careerLevel: li.careerLevel || '',
         supervisor: li.supervisor || '',
         allowanceCompoff: li.allowanceCompoff || 'Compoff', time: li.time || '',
         notes: li.notes || '',

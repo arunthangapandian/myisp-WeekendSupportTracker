@@ -42,7 +42,7 @@ export default function Sidebar() {
         selectedEntryId, navigateToEntry, navigateHome,
         setView, view, addToast, navigateToDeleted,
     } = useAppContext();
-    const { isLeadOnly } = useAuth();
+    const { isLeadOnly, empId } = useAuth();
 
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deletedCount, setDeletedCount] = useState(0);
@@ -63,16 +63,16 @@ export default function Sidebar() {
         }).catch(() => { });
     }, []);
 
-    // Release owners: Only Level 7 and 8 users
+    // Release owners: Only Level 7, 8, and 9 users
     const ownerOptions = employees.filter(e => {
         if (!e.name || !e.id) return false;
         // Check level field first (preferred)
         if (e.level !== null && e.level !== undefined) {
-            return e.level === 7 || e.level === 8;
+            return e.level === 7 || e.level === 8 || e.level === 9;
         }
         // Fallback to parsing careerLevel
         const cl = parseInt(String(e.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-        return !isNaN(cl) && (cl === 7 || cl === 8);
+        return !isNaN(cl) && (cl === 7 || cl === 8 || cl === 9);
     });
 
     // Load deleted items count
@@ -90,17 +90,32 @@ export default function Sidebar() {
 
     // Group entries by year
     const groupedEntries = useMemo(() => {
+        // Filter entries: Level 9 users only see entries where they are the Release Owner
+        const filteredEntries = isLeadOnly
+            ? entries.filter(entry => {
+                // Match by name (case-insensitive)
+                const ownerLower = (entry.releaseOwner || '').toLowerCase().trim();
+                const empIdLower = (empId || '').toLowerCase().trim();
+                const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
+                const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
+                return ownerLower === empIdLower || ownerLower === empNameLower;
+            })
+            : entries;
+
         const groups = {};
-        entries.forEach(entry => {
+        filteredEntries.forEach(entry => {
             const year = new Date(entry.date + 'T00:00:00').getFullYear();
             if (!groups[year]) groups[year] = [];
             groups[year].push(entry);
         });
-        // Sort years descending
+        // Sort years descending, and sort entries within each year by date descending
         return Object.keys(groups)
             .sort((a, b) => b - a)
-            .map(year => ({ year: parseInt(year), entries: groups[year] }));
-    }, [entries]);
+            .map(year => ({
+                year: parseInt(year),
+                entries: groups[year].sort((a, b) => new Date(b.date) - new Date(a.date))
+            }));
+    }, [entries, isLeadOnly, empId, employees]);
 
     // Auto-expand year that contains selected entry
     useEffect(() => {
