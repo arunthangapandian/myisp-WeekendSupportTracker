@@ -71,6 +71,33 @@ export default function ResourcesListScreen() {
                 const wb = XLSX.read(data, { type: 'array' });
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
                 if (rows.length < 2) { addToast('Resource list file is empty', 'error'); return; }
+                
+                // Validate file format - check header row
+                const expectedColumns = ['Status', 'Enterprise ID', 'Resource full Name', 'Level', 'CL', 'Workday Supervisor'];
+                const headerRow = rows[0] || [];
+                
+                // Normalize and compare headers (trim and case-insensitive)
+                const normalizedHeaders = headerRow.map(h => String(h || '').trim().toLowerCase());
+                const normalizedExpected = expectedColumns.map(h => h.toLowerCase());
+                
+                // Check if all required columns are present
+                const missingColumns = [];
+                normalizedExpected.forEach((expected, idx) => {
+                    if (normalizedHeaders[idx] !== expected) {
+                        missingColumns.push(expectedColumns[idx]);
+                    }
+                });
+                
+                if (missingColumns.length > 0) {
+                    addToast(
+                        `Invalid file format! The file must contain the following columns in this exact order:\n\n` +
+                        `1. Status\n2. Enterprise ID\n3. Resource full Name\n4. Level\n5. CL\n6. Workday Supervisor\n\n` +
+                        `Please check your file and try again.`,
+                        'error'
+                    );
+                    return;
+                }
+                
                 // New format: Col A(idx0)=Status, Col B(idx1)=Enterprise ID, Col C(idx2)=Resource full Name, 
                 // Col D(idx3)=Level, Col E(idx4)=CL, Col F(idx5)=Workday Supervisor
                 const list = rows.slice(1).map(r => {
