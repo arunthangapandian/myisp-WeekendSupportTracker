@@ -67,17 +67,25 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
             .replace(/[.,]/g, ' ')
             .split(/\s+/)
             .map(p => p.trim())
-            .filter(p => p.length > 0);
+            .filter(p => p.length > 1); // Filter out single chars like "a"
     };
 
     const empIdNormalized = normalizeText(empIdLower);
     const leadNormalized = normalizeText(leadLower);
 
-    // Check if all enterprise ID parts are present in lead name
-    const empIdInLead = empIdNormalized.every(part => 
-        leadNormalized.some(leadPart => 
-            leadPart.includes(part) || part.includes(leadPart)
-        )
+    // Check if all enterprise ID parts are present in lead name (strict matching - parts must be substantial)
+    // Require at least 3 characters overlap to avoid false matches like "a" in "krishnan"
+    const empIdInLead = empIdNormalized.length > 0 && empIdNormalized.every(part =>
+        leadNormalized.some(leadPart => {
+            // For short parts (< 4 chars), require exact match
+            if (part.length < 4 || leadPart.length < 4) {
+                return part === leadPart;
+            }
+            // For longer parts, allow partial match but require significant overlap
+            const longer = part.length > leadPart.length ? part : leadPart;
+            const shorter = part.length > leadPart.length ? leadPart : part;
+            return longer.includes(shorter) && shorter.length >= 4;
+        })
     );
 
     if (empIdInLead && empIdNormalized.length > 0) return true;
@@ -91,13 +99,18 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
         const userNameLower = userEmployee.name.toLowerCase().trim();
         // Direct match on full name
         if (leadLower === userNameLower) return true;
-        
-        // Normalized match
+
+        // Normalized match with strict checking
         const userNameNormalized = normalizeText(userNameLower);
-        const userNameInLead = userNameNormalized.every(part => 
-            leadNormalized.some(leadPart => 
-                leadPart.includes(part) || part.includes(leadPart)
-            )
+        const userNameInLead = userNameNormalized.length > 0 && userNameNormalized.every(part =>
+            leadNormalized.some(leadPart => {
+                if (part.length < 4 || leadPart.length < 4) {
+                    return part === leadPart;
+                }
+                const longer = part.length > leadPart.length ? part : leadPart;
+                const shorter = part.length > leadPart.length ? leadPart : part;
+                return longer.includes(shorter) && shorter.length >= 4;
+            })
         );
         if (userNameInLead && userNameNormalized.length > 0) return true;
     }
@@ -106,33 +119,52 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
     const leadEmployee = employees.find(e => {
         if (!e.id || !e.name) return false;
         const leadIdLower = e.id.toLowerCase().trim();
-        const leadNameLower = e.name.toLowerCase().trim();
-        
-        // Check direct matches
-        if (leadIdLower === leadLower || leadNameLower === leadLower) return true;
-        
-        // Check normalized matches
+        const leadNameLower = e.nam with strict checking
         const eIdNormalized = normalizeText(leadIdLower);
         const eNameNormalized = normalizeText(leadNameLower);
-        
-        const idMatch = leadNormalized.every(part => 
-            eIdNormalized.some(ePart => ePart.includes(part) || part.includes(ePart))
+
+        const idMatch = leadNormalized.length > 0 && leadNormalized.every(part =>
+            eIdNormalized.some(ePart => {
+                if (part.length < 4 || ePart.length < 4) {
+                    return part === ePart;
+                }
+                const longer = part.length > ePart.length ? part : ePart;
+                const shorter = part.length > ePart.length ? ePart : part;
+                return longer.includes(shorter) && shorter.length >= 4;
+            })
         );
-        const nameMatch = leadNormalized.every(part => 
-            eNameNormalized.some(ePart => ePart.includes(part) || part.includes(ePart))
-        );
-        
+        const nameMatch = leadNormalized.length > 0 && leadNormalized.every(part =>
+            eNameNormalized.some(ePart => {
+                if (part.length < 4 || ePart.length < 4) {
+                    return part === ePart;
+                }
+                const longer = part.length > ePart.length ? part : ePart;
+                const shorter = part.length > ePart.length ? ePart : part;
+                return longer.includes(shorter) && shorter.length >= 4;
+            }
+        const idMatch = leadNormalized.every(part => with strict checking
+        const leadIdNormalized = normalizeText(leadIdLower);
+        const partsMatch = empIdNormalized.length > 0 && empIdNormalized.every(part =>
+            leadIdNormalized.some(leadPart => {
+                if (part.length < 4 || leadPart.length < 4) {
+                    return part === leadPart;
+                }
+                const longer = part.length > leadPart.length ? part : leadPart;
+                const shorter = part.length > leadPart.length ? leadPart : part;
+                return longer.includes(shorter) && shorter.length >= 4;
+            }
+
         return (idMatch && leadNormalized.length > 0) || (nameMatch && leadNormalized.length > 0);
     });
 
     if (leadEmployee && leadEmployee.id) {
         const leadIdLower = leadEmployee.id.toLowerCase().trim();
         if (leadIdLower === empIdLower) return true;
-        
+
         // Check if lead's ID parts match user's ID parts
         const leadIdNormalized = normalizeText(leadIdLower);
-        const partsMatch = empIdNormalized.every(part => 
-            leadIdNormalized.some(leadPart => 
+        const partsMatch = empIdNormalized.every(part =>
+            leadIdNormalized.some(leadPart =>
                 leadPart.includes(part) || part.includes(leadPart)
             )
         );
