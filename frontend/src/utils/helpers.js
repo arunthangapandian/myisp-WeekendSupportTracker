@@ -141,23 +141,13 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
                 const longer = part.length > ePart.length ? part : ePart;
                 const shorter = part.length > ePart.length ? ePart : part;
                 return longer.includes(shorter) && shorter.length >= 4;
-            }
-        const idMatch = leadNormalized.every(part => with strict checking
-                const leadIdNormalized = normalizeText(leadIdLower);
-                const partsMatch = empIdNormalized.length > 0 && empIdNormalized.every(part =>
-                    leadIdNormalized.some(leadPart => {
-                        if (part.length < 4 || leadPart.length < 4) {
-                            return part === leadPart;
-                        }
-                        const longer = part.length > leadPart.length ? part : leadPart;
-                        const shorter = part.length > leadPart.length ? leadPart : part;
-                        return longer.includes(shorter) && shorter.length >= 4;
-                    }
+            })
+        );
 
         return (idMatch && leadNormalized.length > 0) || (nameMatch && leadNormalized.length > 0);
-            });
+    });
 
-        if (leadEmployee && leadEmployee.id) {
+    if (leadEmployee && leadEmployee.id) {
             const leadIdLower = leadEmployee.id.toLowerCase().trim();
             if (leadIdLower === empIdLower) return true;
 
