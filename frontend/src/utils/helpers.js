@@ -119,7 +119,7 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
     const leadEmployee = employees.find(e => {
         if (!e.id || !e.name) return false;
         const leadIdLower = e.id.toLowerCase().trim();
-        const leadNameLower = e.nam with strict checking
+        const leadNameLower = e.name.toLowerCase().trim();
         const eIdNormalized = normalizeText(leadIdLower);
         const eNameNormalized = normalizeText(leadNameLower);
 
@@ -143,33 +143,33 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
                 return longer.includes(shorter) && shorter.length >= 4;
             }
         const idMatch = leadNormalized.every(part => with strict checking
-        const leadIdNormalized = normalizeText(leadIdLower);
-        const partsMatch = empIdNormalized.length > 0 && empIdNormalized.every(part =>
-            leadIdNormalized.some(leadPart => {
-                if (part.length < 4 || leadPart.length < 4) {
-                    return part === leadPart;
-                }
-                const longer = part.length > leadPart.length ? part : leadPart;
-                const shorter = part.length > leadPart.length ? leadPart : part;
-                return longer.includes(shorter) && shorter.length >= 4;
-            }
+                const leadIdNormalized = normalizeText(leadIdLower);
+                const partsMatch = empIdNormalized.length > 0 && empIdNormalized.every(part =>
+                    leadIdNormalized.some(leadPart => {
+                        if (part.length < 4 || leadPart.length < 4) {
+                            return part === leadPart;
+                        }
+                        const longer = part.length > leadPart.length ? part : leadPart;
+                        const shorter = part.length > leadPart.length ? leadPart : part;
+                        return longer.includes(shorter) && shorter.length >= 4;
+                    }
 
         return (idMatch && leadNormalized.length > 0) || (nameMatch && leadNormalized.length > 0);
-    });
+            });
 
-    if (leadEmployee && leadEmployee.id) {
-        const leadIdLower = leadEmployee.id.toLowerCase().trim();
-        if (leadIdLower === empIdLower) return true;
+        if (leadEmployee && leadEmployee.id) {
+            const leadIdLower = leadEmployee.id.toLowerCase().trim();
+            if (leadIdLower === empIdLower) return true;
 
-        // Check if lead's ID parts match user's ID parts
-        const leadIdNormalized = normalizeText(leadIdLower);
-        const partsMatch = empIdNormalized.every(part =>
-            leadIdNormalized.some(leadPart =>
-                leadPart.includes(part) || part.includes(leadPart)
-            )
-        );
-        if (partsMatch && empIdNormalized.length > 0) return true;
+            // Check if lead's ID parts match user's ID parts
+            const leadIdNormalized = normalizeText(leadIdLower);
+            const partsMatch = empIdNormalized.every(part =>
+                leadIdNormalized.some(leadPart =>
+                    leadPart.includes(part) || part.includes(leadPart)
+                )
+            );
+            if (partsMatch && empIdNormalized.length > 0) return true;
+        }
+
+        return false;
     }
-
-    return false;
-}
