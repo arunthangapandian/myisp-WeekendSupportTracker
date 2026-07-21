@@ -32,8 +32,8 @@ export function getTodayStr() {
 
 /**
  * Check if a user is the lead of a team by comparing enterprise ID and full name.
- * Handles various formats: "shini.vv", "Shini V V", "shini v v", etc.
- * @param {string} userEmpId - Logged-in user's enterprise ID (e.g., "shini.vv")
+ * Handles various formats: "shini.vv", "Shini V V", "Krishnan, Pirtheebaa", etc.
+ * @param {string} userEmpId - Logged-in user's enterprise ID (e.g., "pirtheebaa.krishnan")
  * @param {string} teamLeadName - Team's lead name field (could be ID or full name)
  * @param {Array} employees - Employee list from resource file
  * @returns {boolean} True if user is the lead of this team
@@ -47,6 +47,41 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
     // Direct match on enterprise ID
     if (leadLower === empIdLower) return true;
 
+    // Extract name parts from enterprise ID (e.g., "pirtheebaa.krishnan" → ["pirtheebaa", "krishnan"])
+    const empIdParts = empIdLower.split('.').map(p => p.trim()).filter(p => p);
+
+    // Extract name parts from team lead name
+    // Handle formats: "Krishnan, Pirtheebaa" or "Pirtheebaa Krishnan" or "P Krishnan"
+    let leadNameParts = [];
+    if (leadLower.includes(',')) {
+        // "Last, First" format
+        leadNameParts = leadLower.split(',').map(p => p.trim()).filter(p => p);
+    } else {
+        // "First Last" format
+        leadNameParts = leadLower.split(/\s+/).filter(p => p);
+    }
+
+    // Normalize parts by removing dots, commas, and splitting by spaces
+    const normalizeText = (text) => {
+        return text.toLowerCase()
+            .replace(/[.,]/g, ' ')
+            .split(/\s+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+    };
+
+    const empIdNormalized = normalizeText(empIdLower);
+    const leadNormalized = normalizeText(leadLower);
+
+    // Check if all enterprise ID parts are present in lead name
+    const empIdInLead = empIdNormalized.every(part => 
+        leadNormalized.some(leadPart => 
+            leadPart.includes(part) || part.includes(leadPart)
+        )
+    );
+
+    if (empIdInLead && empIdNormalized.length > 0) return true;
+
     // Find logged-in user's full name from employee list
     const userEmployee = employees.find(e =>
         e.id && e.id.toLowerCase().trim() === empIdLower
@@ -54,8 +89,17 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
 
     if (userEmployee && userEmployee.name) {
         const userNameLower = userEmployee.name.toLowerCase().trim();
-        // Match on full name
+        // Direct match on full name
         if (leadLower === userNameLower) return true;
+        
+        // Normalized match
+        const userNameNormalized = normalizeText(userNameLower);
+        const userNameInLead = userNameNormalized.every(part => 
+            leadNormalized.some(leadPart => 
+                leadPart.includes(part) || part.includes(leadPart)
+            )
+        );
+        if (userNameInLead && userNameNormalized.length > 0) return true;
     }
 
     // Reverse check: find lead in employee list and compare IDs
@@ -63,12 +107,36 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
         if (!e.id || !e.name) return false;
         const leadIdLower = e.id.toLowerCase().trim();
         const leadNameLower = e.name.toLowerCase().trim();
-        return leadIdLower === leadLower || leadNameLower === leadLower;
+        
+        // Check direct matches
+        if (leadIdLower === leadLower || leadNameLower === leadLower) return true;
+        
+        // Check normalized matches
+        const eIdNormalized = normalizeText(leadIdLower);
+        const eNameNormalized = normalizeText(leadNameLower);
+        
+        const idMatch = leadNormalized.every(part => 
+            eIdNormalized.some(ePart => ePart.includes(part) || part.includes(ePart))
+        );
+        const nameMatch = leadNormalized.every(part => 
+            eNameNormalized.some(ePart => ePart.includes(part) || part.includes(ePart))
+        );
+        
+        return (idMatch && leadNormalized.length > 0) || (nameMatch && leadNormalized.length > 0);
     });
 
     if (leadEmployee && leadEmployee.id) {
         const leadIdLower = leadEmployee.id.toLowerCase().trim();
         if (leadIdLower === empIdLower) return true;
+        
+        // Check if lead's ID parts match user's ID parts
+        const leadIdNormalized = normalizeText(leadIdLower);
+        const partsMatch = empIdNormalized.every(part => 
+            leadIdNormalized.some(leadPart => 
+                leadPart.includes(part) || part.includes(leadPart)
+            )
+        );
+        if (partsMatch && empIdNormalized.length > 0) return true;
     }
 
     return false;

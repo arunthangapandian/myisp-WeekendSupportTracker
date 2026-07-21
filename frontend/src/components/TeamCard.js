@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { isUserTeamLead } from '../utils/helpers';
 import api from '../utils/api';
 import ConfirmDialog from './ConfirmDialog';
 import Card from '@mui/material/Card';
@@ -35,7 +36,7 @@ export default function TeamCard({ team, entryId, onRefresh }) {
     const { navigateToTeam, addToast, employees } = useAppContext();
     const { isLeadOnly, empId } = useAuth();
     // CL9 lead: they can only interact with their own team
-    const isMyTeam = team.leadName.toLowerCase() === (empId || '').toLowerCase();
+    const isMyTeam = isUserTeamLead(empId, team.leadName, employees);
     const [expanded, setExpanded] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [editing, setEditing] = useState(false);

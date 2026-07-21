@@ -2,6 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { isUserTeamLead } from '../utils/helpers';
 import api from '../utils/api';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -114,7 +115,7 @@ function getNumericLevel(lineItem) {
 }
 
 export default function SummaryHeader({ entry, onRefresh }) {
-    const { addToast } = useAppContext();
+    const { addToast, employees } = useAppContext();
     const { empId, isLeadOnly } = useAuth();
     const fileInputRef = useRef(null);
     const reuploadInputRef = useRef(null);
@@ -125,7 +126,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
     const teams = entry.teams || [];
     // CL9 leads see summary only for their own team
     const visibleTeams = isLeadOnly
-        ? teams.filter(t => t.leadName.toLowerCase() === empId.toLowerCase())
+        ? teams.filter(t => isUserTeamLead(empId, t.leadName, employees))
         : teams;
     const totalTeams = visibleTeams.length;
     const allItems = visibleTeams.flatMap(t => (t.lineItems || []).map(li => ({ ...li, teamName: t.teamName, leadName: t.leadName })));
