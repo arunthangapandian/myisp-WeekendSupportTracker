@@ -124,9 +124,8 @@ const employeeDirectory = [
 // ROUTES
 // ══════════════════════════════════════════════════════════════
 
-// Hardcoded career level map – takes priority over uploaded employee list.
-// CL9 = Lead (restricted access). CL8 and below = full access.
-// Add/remove users here to control access levels without re-deploying a resource CSV.
+// Hardcoded career level map – used as fallback only when employee is not in uploaded resource list.
+// The recently uploaded Resource List is now the primary source of truth.
 const HARDCODED_CAREER_LEVELS = {
     'shini.vv': 9,
     'vishnu.ramalingam': 9,
@@ -151,7 +150,34 @@ app.post('/api/auth/validate', (req, res) => {
         if (password !== appPassword) return res.status(401).json({ error: 'Invalid Employee ID or password' });
     }
 
-    // Check hardcoded map first (reliable, CSV-independent)
+    // PRIORITY 1: Check uploaded resource list first (primary source of truth)
+    if (employees.length > 0) {
+        const emp = employees.find(e => (e.id || '').toLowerCase() === id);
+        if (emp) {
+            // Get level from the uploaded resource list (prefer 'level' field, fallback to parsing 'careerLevel')
+            let cl = NaN;
+            if (emp.level !== null && emp.level !== undefined) {
+                cl = parseInt(emp.level, 10);
+            } else if (emp.careerLevel) {
+                cl = parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10);
+            }
+
+            // Level could not be determined
+            if (isNaN(cl)) {
+                return res.status(403).json({ error: 'Access denied. Level information not available for this user.' });
+            }
+
+            // Only allow Level 7, 8, 9 users to login
+            if (cl < 7 || cl > 9) {
+                return res.status(403).json({ error: 'Access denied. Only Level 7, 8, and 9 users can login.' });
+            }
+
+            // Login successful
+            return res.json({ valid: true, empId: id, careerLevel: cl });
+        }
+    }
+
+    // PRIORITY 2: Fallback to hardcoded map if not found in resource list
     if (Object.prototype.hasOwnProperty.call(HARDCODED_CAREER_LEVELS, id)) {
         const hardcodedCl = HARDCODED_CAREER_LEVELS[id];
         if (hardcodedCl < 7 || hardcodedCl > 9) {
@@ -160,39 +186,8 @@ app.post('/api/auth/validate', (req, res) => {
         return res.json({ valid: true, empId: id, careerLevel: hardcodedCl });
     }
 
-    // Resource list must be uploaded for non-hardcoded users
-    if (employees.length === 0) {
-        return res.status(403).json({ error: 'Access denied. Please upload the Resource List first.' });
-    }
-
-    // Find user in uploaded employee list (match by Enterprise ID)
-    const emp = employees.find(e => (e.id || '').toLowerCase() === id);
-
-    // User not found in resource list
-    if (!emp) {
-        return res.status(403).json({ error: 'Access denied. Enterprise ID not found in Resource List.' });
-    }
-
-    // Get level from the uploaded resource list (prefer 'level' field, fallback to parsing 'careerLevel')
-    let cl = NaN;
-    if (emp.level !== null && emp.level !== undefined) {
-        cl = parseInt(emp.level, 10);
-    } else if (emp.careerLevel) {
-        cl = parseInt(String(emp.careerLevel || '').replace(/[^0-9]/g, ''), 10);
-    }
-
-    // Level could not be determined
-    if (isNaN(cl)) {
-        return res.status(403).json({ error: 'Access denied. Level information not available for this user.' });
-    }
-
-    // Only allow Level 7, 8, 9 users to login
-    if (cl < 7 || cl > 9) {
-        return res.status(403).json({ error: 'Access denied. Only Level 7, 8, and 9 users can login.' });
-    }
-
-    // Login successful
-    res.json({ valid: true, empId: id, careerLevel: cl });
+    // User not found in either resource list or hardcoded map
+    return res.status(403).json({ error: 'Access denied. Enterprise ID not found in Resource List.' });
 });
 
 app.get('/api/options/release-owners', (_r, res) => res.json(releaseOwners));

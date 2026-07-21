@@ -73,33 +73,6 @@ export default function EntryDetail({ onRefresh }) {
         );
     }
 
-    // Access control: Level 9 users can only view entries where they are the Release Owner
-    if (isLeadOnly && currentEntry) {
-        const ownerLower = (currentEntry.releaseOwner || '').toLowerCase().trim();
-        const empIdLower = (empId || '').toLowerCase().trim();
-        const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
-        const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
-        const hasAccess = ownerLower === empIdLower || ownerLower === empNameLower;
-
-        if (!hasAccess) {
-            return (
-                <Box sx={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    justifyContent: 'center', height: '50vh', textAlign: 'center'
-                }}>
-                    <Typography variant="h6" sx={{ color: '#fbbf24', mb: 2 }}>🚫 Access Denied</Typography>
-                    <Typography variant="body2" sx={{ color: '#a5b4fc', mb: 3 }}>
-                        You can only view releases where you are the Release Owner.
-                    </Typography>
-                    <Button variant="contained" onClick={navigateHome}
-                        sx={{ bgcolor: '#4f46e5', '&:hover': { bgcolor: '#4338ca' }, textTransform: 'none' }}>
-                        Back to Home
-                    </Button>
-                </Box>
-            );
-        }
-    }
-
     const teams = currentEntry.teams || [];
 
     return (

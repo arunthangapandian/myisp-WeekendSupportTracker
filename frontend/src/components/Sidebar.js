@@ -90,17 +90,8 @@ export default function Sidebar() {
 
     // Group entries by year
     const groupedEntries = useMemo(() => {
-        // Filter entries: Level 9 users only see entries where they are the Release Owner
-        const filteredEntries = isLeadOnly
-            ? entries.filter(entry => {
-                // Match by name (case-insensitive)
-                const ownerLower = (entry.releaseOwner || '').toLowerCase().trim();
-                const empIdLower = (empId || '').toLowerCase().trim();
-                const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
-                const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
-                return ownerLower === empIdLower || ownerLower === empNameLower;
-            })
-            : entries;
+        // Level 9 users can now view all releases (they can only edit their own teams within those releases)
+        const filteredEntries = entries;
 
         const groups = {};
         filteredEntries.forEach(entry => {
@@ -115,7 +106,7 @@ export default function Sidebar() {
                 year: parseInt(year),
                 entries: groups[year].sort((a, b) => new Date(b.date) - new Date(a.date))
             }));
-    }, [entries, isLeadOnly, empId, employees]);
+    }, [entries]);
 
     // Auto-expand year that contains selected entry
     useEffect(() => {

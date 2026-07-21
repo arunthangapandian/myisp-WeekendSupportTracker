@@ -5,7 +5,8 @@ const AuthContext = createContext();
 
 /**
  * Authentication provider – stores empId and careerLevel in localStorage.
- * Career level 9 = Lead (restricted). Career level 8 and below = full access.
+ * Career level 9 = Lead (team-level restricted view/edit).
+ * Career level 7 and 8 = full admin access.
  */
 export function AuthProvider({ children }) {
     const [empId, setEmpId] = useState(() => localStorage.getItem('empId') || '');
@@ -24,9 +25,9 @@ export function AuthProvider({ children }) {
         else localStorage.removeItem('careerLevel');
     }, [careerLevel]);
 
-    /** Career level 9 = Lead: restricted view/edit access */
+    /** Career level 9 = Lead: can view all releases but only edit their own teams */
     const isLeadOnly = careerLevel !== null && careerLevel === 9;
-    /** Career level 7 and 8 = full access to all features */
+    /** Career level 7 and 8 = full admin access to all features */
     const isFullAccess = careerLevel === null || (careerLevel >= 7 && careerLevel <= 8);
 
     const login = (id, cl) => {
