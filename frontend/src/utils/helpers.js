@@ -29,3 +29,47 @@ function ordinal(d) {
 export function getTodayStr() {
     return new Date().toISOString().split('T')[0];
 }
+
+/**
+ * Check if a user is the lead of a team by comparing enterprise ID and full name.
+ * Handles various formats: "shini.vv", "Shini V V", "shini v v", etc.
+ * @param {string} userEmpId - Logged-in user's enterprise ID (e.g., "shini.vv")
+ * @param {string} teamLeadName - Team's lead name field (could be ID or full name)
+ * @param {Array} employees - Employee list from resource file
+ * @returns {boolean} True if user is the lead of this team
+ */
+export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
+    if (!userEmpId || !teamLeadName) return false;
+    
+    const empIdLower = userEmpId.toLowerCase().trim();
+    const leadLower = teamLeadName.toLowerCase().trim();
+    
+    // Direct match on enterprise ID
+    if (leadLower === empIdLower) return true;
+    
+    // Find logged-in user's full name from employee list
+    const userEmployee = employees.find(e => 
+        e.id && e.id.toLowerCase().trim() === empIdLower
+    );
+    
+    if (userEmployee && userEmployee.name) {
+        const userNameLower = userEmployee.name.toLowerCase().trim();
+        // Match on full name
+        if (leadLower === userNameLower) return true;
+    }
+    
+    // Reverse check: find lead in employee list and compare IDs
+    const leadEmployee = employees.find(e => {
+        if (!e.id || !e.name) return false;
+        const leadIdLower = e.id.toLowerCase().trim();
+        const leadNameLower = e.name.toLowerCase().trim();
+        return leadIdLower === leadLower || leadNameLower === leadLower;
+    });
+    
+    if (leadEmployee && leadEmployee.id) {
+        const leadIdLower = leadEmployee.id.toLowerCase().trim();
+        if (leadIdLower === empIdLower) return true;
+    }
+    
+    return false;
+}

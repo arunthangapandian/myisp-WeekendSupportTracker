@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { isUserTeamLead } from '../utils/helpers';
 import api from '../utils/api';
 import * as XLSX from 'xlsx';
 import ConfirmDialog from './ConfirmDialog';
@@ -183,11 +184,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
 
     // Access control: Level 9 users can only view teams where they are the Lead
     if (isLeadOnly && team) {
-        const leadLower = (team.leadName || '').toLowerCase().trim();
-        const empIdLower = (empId || '').toLowerCase().trim();
-        const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
-        const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
-        const hasAccess = leadLower === empIdLower || leadLower === empNameLower;
+        const hasAccess = isUserTeamLead(empId, team.leadName, employees);
 
         if (!hasAccess) {
             return (

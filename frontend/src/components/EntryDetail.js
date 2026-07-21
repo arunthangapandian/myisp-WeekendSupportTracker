@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { isUserTeamLead } from '../utils/helpers';
 import Breadcrumb from './Breadcrumb';
 import SummaryHeader from './SummaryHeader';
 import AddTeamForm from './AddTeamForm';
@@ -136,11 +137,7 @@ export default function EntryDetail({ onRefresh }) {
                         teams
                             .filter(t => {
                                 if (!isLeadOnly) return true;
-                                const leadLower = (t.leadName || '').toLowerCase().trim();
-                                const empIdLower = (empId || '').toLowerCase().trim();
-                                const empName = employees.find(e => e.id.toLowerCase() === empIdLower);
-                                const empNameLower = empName ? empName.name.toLowerCase().trim() : '';
-                                return leadLower === empIdLower || leadLower === empNameLower;
+                                return isUserTeamLead(empId, t.leadName, employees);
                             })
                             .map(t => (
                                 <TeamCard key={t.id} team={t} entryId={currentEntry.id} onRefresh={onRefresh} />
