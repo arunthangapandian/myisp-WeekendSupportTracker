@@ -40,24 +40,24 @@ export function getTodayStr() {
  */
 export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
     if (!userEmpId || !teamLeadName) return false;
-    
+
     const empIdLower = userEmpId.toLowerCase().trim();
     const leadLower = teamLeadName.toLowerCase().trim();
-    
+
     // Direct match on enterprise ID
     if (leadLower === empIdLower) return true;
-    
+
     // Find logged-in user's full name from employee list
-    const userEmployee = employees.find(e => 
+    const userEmployee = employees.find(e =>
         e.id && e.id.toLowerCase().trim() === empIdLower
     );
-    
+
     if (userEmployee && userEmployee.name) {
         const userNameLower = userEmployee.name.toLowerCase().trim();
         // Match on full name
         if (leadLower === userNameLower) return true;
     }
-    
+
     // Reverse check: find lead in employee list and compare IDs
     const leadEmployee = employees.find(e => {
         if (!e.id || !e.name) return false;
@@ -65,11 +65,11 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
         const leadNameLower = e.name.toLowerCase().trim();
         return leadIdLower === leadLower || leadNameLower === leadLower;
     });
-    
+
     if (leadEmployee && leadEmployee.id) {
         const leadIdLower = leadEmployee.id.toLowerCase().trim();
         if (leadIdLower === empIdLower) return true;
     }
-    
+
     return false;
 }
