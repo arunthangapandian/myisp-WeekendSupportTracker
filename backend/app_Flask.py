@@ -163,6 +163,37 @@ def get_support_type(hrs_str):
     return ""
 
 
+def get_numeric_level(line_item):
+    """Get numeric level - prioritize level field, fallback to parsing careerLevel"""
+    # First, check if there's a numeric level field
+    if line_item.get("level") is not None:
+        return line_item["level"]
+    # Fallback: try to parse careerLevel string
+    career_level = line_item.get("careerLevel", "")
+    if not career_level:
+        return "—"
+    # If it starts with "Level", extract the number
+    if "level" in career_level.lower():
+        num_str = re.sub(r"[^0-9]", "", str(career_level))
+        try:
+            return int(num_str)
+        except ValueError:
+            return "—"
+    # Map common abbreviations to numeric levels
+    level_map = {
+        "analyst": 10,
+        "senior analyst": 9,
+        "se": 9,
+        "consultant": 8,
+        "sse": 10,
+        "manager": 7,
+        "senior manager": 7,
+        "associate director": 7,
+    }
+    lower = career_level.lower().strip()
+    return level_map.get(lower, career_level)
+
+
 def allowed_file(filename):
     ext = Path(filename).suffix.lower().lstrip(".")
     return ext in ALLOWED_EXTENSIONS
@@ -830,6 +861,7 @@ def export_entry(eid):
         {"header": "Team Name", "key": "teamName", "width": 22},
         {"header": "Lead Name", "key": "leadName", "width": 22},
         {"header": "Member Name", "key": "memberName", "width": 28},
+        {"header": "Career Level", "key": "careerLevel", "width": 14},
         {"header": "Login Time", "key": "loginTime", "width": 14},
         {"header": "Logout Time", "key": "logoutTime", "width": 14},
         {"header": "Total Hours", "key": "totalHours", "width": 14},
@@ -843,7 +875,7 @@ def export_entry(eid):
             row_data_list.append({
                 "releaseOwner": entry["releaseOwner"], "releaseDate": entry["date"],
                 "teamName": t["teamName"], "leadName": t["leadName"],
-                "memberName": "", "loginTime": "", "logoutTime": "",
+                "memberName": "", "careerLevel": "", "loginTime": "", "logoutTime": "",
                 "totalHours": "", "type": "", "createdBy": t.get("createdBy", ""),
                 "_type": "",
             })
@@ -855,7 +887,8 @@ def export_entry(eid):
                     "releaseDate": entry["date"] if i == 0 else "",
                     "teamName": t["teamName"] if i == 0 else "",
                     "leadName": t["leadName"] if i == 0 else "",
-                    "memberName": li["name"],
+                    "memberName": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "",
+                    "careerLevel": get_numeric_level(li),
                     "loginTime": parts[0] if len(parts) > 0 else "",
                     "logoutTime": parts[1] if len(parts) > 1 else "",
                     "totalHours": calc_total_hours(li.get("time", "")),
@@ -910,8 +943,8 @@ def export_team(eid, tid):
     for li in team["lineItems"]:
         parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
         row_data_list.append({
-            "name": li.get("name", ""),
-            "careerLevel": li.get("careerLevel", ""),
+            "name": (li.get("name", "") + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "",
+            "careerLevel": get_numeric_level(li),
             "supervisor": li.get("supervisor", ""),
             "loginTime": parts[0] if len(parts) > 0 else "",
             "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -973,7 +1006,7 @@ def dialog_export(eid, export_type):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
             row_data_list.append({
-                "num": i + 1, "name": li["name"], "careerLevel": li.get("careerLevel", ""),
+                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -999,7 +1032,7 @@ def dialog_export(eid, export_type):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
             row_data_list.append({
-                "num": i + 1, "name": li["name"], "careerLevel": li.get("careerLevel", ""),
+                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1026,7 +1059,7 @@ def dialog_export(eid, export_type):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
             row_data_list.append({
-                "num": i + 1, "name": li["name"], "careerLevel": li.get("careerLevel", ""),
+                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",

@@ -688,6 +688,35 @@ function titleCase(str) {
     return (str || '').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+/** Get numeric level - prioritize level field, fallback to parsing careerLevel */
+function getNumericLevel(lineItem) {
+    // First, check if there's a numeric level field
+    if (lineItem.level !== null && lineItem.level !== undefined) {
+        return lineItem.level;
+    }
+    // Fallback: try to parse careerLevel string
+    const careerLevel = lineItem.careerLevel;
+    if (!careerLevel) return '—';
+    // If it starts with "Level", extract the number
+    if (careerLevel.toLowerCase().includes('level')) {
+        const num = parseInt(String(careerLevel).replace(/[^0-9]/g, ''), 10);
+        return isNaN(num) ? '—' : num;
+    }
+    // Map common abbreviations to numeric levels
+    const levelMap = {
+        'analyst': 10,
+        'senior analyst': 9,
+        'se': 9,
+        'consultant': 8,
+        'sse': 10,
+        'manager': 7,
+        'senior manager': 7,
+        'associate director': 7,
+    };
+    const lower = careerLevel.toLowerCase().trim();
+    return levelMap[lower] || careerLevel;
+}
+
 /** Apply standard header + row styling to a sheet. Highlights duplicate names in yellow. */
 function styleExcelSheet(sheet, columns, rowDataList, getRowBg) {
     const HEADER_BG = 'FF3730A3';
@@ -750,6 +779,7 @@ app.get('/api/entries/:id/export', async (req, res) => {
         { header: 'Team Name', key: 'teamName', width: 22 },
         { header: 'Lead Name', key: 'leadName', width: 22 },
         { header: 'Member Name', key: 'memberName', width: 28 },
+        { header: 'Career Level', key: 'careerLevel', width: 14 },
         { header: 'Login Time', key: 'loginTime', width: 14 },
         { header: 'Logout Time', key: 'logoutTime', width: 14 },
         { header: 'Total Hours', key: 'totalHours', width: 14 },
@@ -761,7 +791,7 @@ app.get('/api/entries/:id/export', async (req, res) => {
     const rowDataList = [];
     entry.teams.forEach(t => {
         if (t.lineItems.length === 0) {
-            rowDataList.push({ releaseOwner: entry.releaseOwner, releaseDate: entry.date, teamName: t.teamName, leadName: t.leadName, memberName: '', loginTime: '', logoutTime: '', totalHours: '', type: '', createdBy: t.createdBy });
+            rowDataList.push({ releaseOwner: entry.releaseOwner, releaseDate: entry.date, teamName: t.teamName, leadName: t.leadName, memberName: '', careerLevel: '', loginTime: '', logoutTime: '', totalHours: '', type: '', createdBy: t.createdBy });
         } else {
             t.lineItems.forEach((li, i) => {
                 const parts = (li.time || '').split('-').map(s => s.trim());
@@ -770,7 +800,8 @@ app.get('/api/entries/:id/export', async (req, res) => {
                     releaseDate: i === 0 ? entry.date : '',
                     teamName: i === 0 ? t.teamName : '',
                     leadName: i === 0 ? t.leadName : '',
-                    memberName: li.name,
+                    memberName: li.name ? (li.empId ? `${li.name} (${li.empId})` : li.name) : '',
+                    careerLevel: getNumericLevel(li),
                     loginTime: parts[0] || '',
                     logoutTime: parts[1] || '',
                     totalHours: calcTotalHoursServer(li.time || ''),
@@ -821,8 +852,8 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
     const rowDataList = team.lineItems.map(li => {
         const parts = (li.time || '').split('-').map(s => s.trim());
         return {
-            name: li.name || '',
-            careerLevel: li.careerLevel || '',
+            name: li.name ? (li.empId ? `${li.name} (${li.empId})` : li.name) : '',
+            careerLevel: getNumericLevel(li),
             supervisor: li.supervisor || '',
             loginTime: parts[0] || '',
             logoutTime: parts[1] || '',
@@ -877,7 +908,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
         rowDataList = allowanceItems.map((li, i) => {
             const parts = (li.time || '').split('-').map(s => s.trim());
             const hrs = calcTotalHoursServer(li.time || '');
-            return { num: i + 1, name: li.name, careerLevel: li.careerLevel || '', supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, supportType: getSupportTypeServer(hrs) };
+            return { num: i + 1, name: li.name ? (li.empId ? `${li.name} (${li.empId})` : li.name) : '', careerLevel: getNumericLevel(li), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, supportType: getSupportTypeServer(hrs) };
         });
         getRowBg = () => ALLOWANCE_BG;
     } else if (exportType === 'compoff') {
@@ -896,7 +927,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
         rowDataList = compoffItems.map((li, i) => {
             const parts = (li.time || '').split('-').map(s => s.trim());
             const hrs = calcTotalHoursServer(li.time || '');
-            return { num: i + 1, name: li.name, careerLevel: li.careerLevel || '', supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs };
+            return { num: i + 1, name: li.name ? (li.empId ? `${li.name} (${li.empId})` : li.name) : '', careerLevel: getNumericLevel(li), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs };
         });
         getRowBg = () => COMPOFF_BG;
     } else if (exportType === 'members') {
@@ -916,7 +947,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
         rowDataList = allItems.map((li, i) => {
             const parts = (li.time || '').split('-').map(s => s.trim());
             const hrs = calcTotalHoursServer(li.time || '');
-            return { num: i + 1, name: li.name, careerLevel: li.careerLevel || '', supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, type: li.allowanceCompoff || '', _type: li.allowanceCompoff };
+            return { num: i + 1, name: li.name ? (li.empId ? `${li.name} (${li.empId})` : li.name) : '', careerLevel: getNumericLevel(li), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, type: li.allowanceCompoff || '', _type: li.allowanceCompoff };
         });
         getRowBg = (row, idx) => row._type === 'Allowance' ? ALLOWANCE_BG : row._type === 'Compoff' ? COMPOFF_BG : ALT[idx % 2];
     } else if (exportType === 'teams') {
