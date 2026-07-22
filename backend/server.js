@@ -720,26 +720,26 @@ function getNumericLevel(lineItem) {
 /** Lookup employee from resource list by name and return empId and level */
 function lookupEmployeeInfo(lineItem) {
     if (!lineItem.name) return { empId: '', level: null };
-    
+
     // If empId already exists and level exists, return them
     if (lineItem.empId && (lineItem.level !== null && lineItem.level !== undefined)) {
         return { empId: lineItem.empId, level: lineItem.level };
     }
-    
+
     // Lookup in employees list
     const nameLower = lineItem.name.toLowerCase().trim();
-    const emp = employees.find(e => 
+    const emp = employees.find(e =>
         e.name && e.name.toLowerCase().trim() === nameLower ||
         e.id && e.id.toLowerCase().trim() === nameLower
     );
-    
+
     if (emp) {
         return {
             empId: emp.id || '',
             level: emp.level !== null && emp.level !== undefined ? emp.level : null
         };
     }
-    
+
     // Return existing values or defaults
     return {
         empId: lineItem.empId || '',
