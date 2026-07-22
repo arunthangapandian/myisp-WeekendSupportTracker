@@ -194,6 +194,34 @@ def get_numeric_level(line_item):
     return level_map.get(lower, career_level)
 
 
+def lookup_employee_info(line_item):
+    """Lookup employee from resource list by name and return empId and level"""
+    if not line_item.get("name"):
+        return {"empId": "", "level": None}
+    
+    # If empId already exists and level exists, return them
+    if line_item.get("empId") and line_item.get("level") is not None:
+        return {"empId": line_item["empId"], "level": line_item["level"]}
+    
+    # Lookup in employees list
+    name_lower = line_item["name"].lower().strip()
+    emp = next((e for e in employees if 
+                e.get("name") and e["name"].lower().strip() == name_lower or
+                e.get("id") and e["id"].lower().strip() == name_lower), None)
+    
+    if emp:
+        return {
+            "empId": emp.get("id", ""),
+            "level": emp.get("level") if emp.get("level") is not None else None
+        }
+    
+    # Return existing values or defaults
+    return {
+        "empId": line_item.get("empId", ""),
+        "level": line_item.get("level") if line_item.get("level") is not None else None
+    }
+
+
 def allowed_file(filename):
     ext = Path(filename).suffix.lower().lstrip(".")
     return ext in ALLOWED_EXTENSIONS
@@ -882,13 +910,15 @@ def export_entry(eid):
         else:
             for i, li in enumerate(t["lineItems"]):
                 parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
+                emp_info = lookup_employee_info(li)
+                enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
                 row_data_list.append({
                     "releaseOwner": entry["releaseOwner"] if i == 0 else "",
                     "releaseDate": entry["date"] if i == 0 else "",
                     "teamName": t["teamName"] if i == 0 else "",
                     "leadName": t["leadName"] if i == 0 else "",
-                    "memberName": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "",
-                    "careerLevel": get_numeric_level(li),
+                    "memberName": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "",
+                    "careerLevel": get_numeric_level(enriched_li),
                     "loginTime": parts[0] if len(parts) > 0 else "",
                     "logoutTime": parts[1] if len(parts) > 1 else "",
                     "totalHours": calc_total_hours(li.get("time", "")),
@@ -942,9 +972,11 @@ def export_team(eid, tid):
     row_data_list = []
     for li in team["lineItems"]:
         parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
+        emp_info = lookup_employee_info(li)
+        enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
         row_data_list.append({
-            "name": (li.get("name", "") + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "",
-            "careerLevel": get_numeric_level(li),
+            "name": (li.get("name", "") + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "",
+            "careerLevel": get_numeric_level(enriched_li),
             "supervisor": li.get("supervisor", ""),
             "loginTime": parts[0] if len(parts) > 0 else "",
             "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1005,8 +1037,10 @@ def dialog_export(eid, export_type):
         for i, li in enumerate(allowance_items):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
+            emp_info = lookup_employee_info(li)
+            enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
+                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1031,8 +1065,10 @@ def dialog_export(eid, export_type):
         for i, li in enumerate(compoff_items):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
+            emp_info = lookup_employee_info(li)
+            enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
+                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1058,8 +1094,10 @@ def dialog_export(eid, export_type):
         for i, li in enumerate(all_items):
             parts = [p.strip() for p in (li.get("time") or "").split("-", 1)]
             hrs = calc_total_hours(li.get("time", ""))
+            emp_info = lookup_employee_info(li)
+            enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({li.get('empId')})" if li.get("empId") else "")) if li.get("name") else "", "careerLevel": get_numeric_level(li),
+                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
