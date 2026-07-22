@@ -105,7 +105,7 @@ function getNumericLevel(lineItem) {
         'senior analyst': 9,
         'se': 9,
         'consultant': 8,
-        'sse': 8,
+        'sse': 10,
         'manager': 7,
         'senior manager': 7,
         'associate director': 7,
@@ -281,7 +281,7 @@ export default function SummaryHeader({ entry, onRefresh }) {
                                         return (
                                             <TableRow key={li.id}>
                                                 <TableCell>{i + 1}</TableCell>
-                                                <TableCell>{li.name}</TableCell>
+                                                <TableCell>{li.name}{li.empId ? ` (${li.empId})` : ''}</TableCell>
                                                 <TableCell>{getNumericLevel(li)}</TableCell>
                                                 <TableCell>{li.supervisor || '—'}</TableCell>
                                                 <TableCell>{li.teamName}</TableCell>

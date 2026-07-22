@@ -42,7 +42,7 @@ function getNumericLevel(item) {
         'senior analyst': 9,
         'se': 9,
         'consultant': 8,
-        'sse': 8,
+        'sse': 10,
         'manager': 7,
         'senior manager': 7,
         'associate director': 7,

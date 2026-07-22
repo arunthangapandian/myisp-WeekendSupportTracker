@@ -148,18 +148,18 @@ export function isUserTeamLead(userEmpId, teamLeadName, employees = []) {
     });
 
     if (leadEmployee && leadEmployee.id) {
-            const leadIdLower = leadEmployee.id.toLowerCase().trim();
-            if (leadIdLower === empIdLower) return true;
+        const leadIdLower = leadEmployee.id.toLowerCase().trim();
+        if (leadIdLower === empIdLower) return true;
 
-            // Check if lead's ID parts match user's ID parts
-            const leadIdNormalized = normalizeText(leadIdLower);
-            const partsMatch = empIdNormalized.every(part =>
-                leadIdNormalized.some(leadPart =>
-                    leadPart.includes(part) || part.includes(leadPart)
-                )
-            );
-            if (partsMatch && empIdNormalized.length > 0) return true;
-        }
-
-        return false;
+        // Check if lead's ID parts match user's ID parts
+        const leadIdNormalized = normalizeText(leadIdLower);
+        const partsMatch = empIdNormalized.every(part =>
+            leadIdNormalized.some(leadPart =>
+                leadPart.includes(part) || part.includes(leadPart)
+            )
+        );
+        if (partsMatch && empIdNormalized.length > 0) return true;
     }
+
+    return false;
+}

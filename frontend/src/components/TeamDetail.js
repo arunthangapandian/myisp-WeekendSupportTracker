@@ -112,6 +112,35 @@ function getSupportTypeUI(timeStr) {
     return '';
 }
 
+/** Get numeric level - prioritize level field, fallback to parsing careerLevel */
+function getNumericLevel(lineItem) {
+    // First, check if there's a numeric level field
+    if (lineItem.level !== null && lineItem.level !== undefined) {
+        return lineItem.level;
+    }
+    // Fallback: try to parse careerLevel string
+    const careerLevel = lineItem.careerLevel;
+    if (!careerLevel) return '—';
+    // If it starts with "Level", extract the number
+    if (careerLevel.toLowerCase().includes('level')) {
+        const num = parseInt(String(careerLevel).replace(/[^0-9]/g, ''), 10);
+        return isNaN(num) ? '—' : num;
+    }
+    // Map common abbreviations to numeric levels
+    const levelMap = {
+        'analyst': 10,
+        'senior analyst': 9,
+        'se': 9,
+        'consultant': 8,
+        'sse': 10,
+        'manager': 7,
+        'senior manager': 7,
+        'associate director': 7,
+    };
+    const lower = careerLevel.toLowerCase().trim();
+    return levelMap[lower] || careerLevel;
+}
+
 /**
  * Team Details screen with dropdown time pickers (half-hour intervals),
  * auto-calculated Total Hours, and hidden filter row under headers.
@@ -261,6 +290,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
         const emp = lookupEmployee(trimmed);
         setLineItems(prev => [...prev, {
             id: `temp-${Date.now()}`, name: emp ? emp.name : trimmed,
+            empId: emp ? emp.id : '',
             level: emp ? emp.level : null,
             careerLevel: emp ? (emp.careerLevel || '') : '', supervisor: emp ? (emp.supervisor || '') : '',
             allowanceCompoff: 'Compoff', time: '11:00 AM - ', notes: '',
@@ -397,6 +427,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                     if (existingIdx !== -1) {
                         lineItems[existingIdx] = {
                             ...lineItems[existingIdx], name,
+                            empId: empRecord ? empRecord.id : lineItems[existingIdx].empId,
                             level: levelNum !== null ? levelNum : lineItems[existingIdx].level,
                             careerLevel: cl || lineItems[existingIdx].careerLevel,
                             supervisor: sv || lineItems[existingIdx].supervisor || '',
@@ -405,7 +436,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                         };
                         overwritten.push(name);
                     } else {
-                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, level: levelNum, careerLevel: cl, supervisor: sv, allowanceCompoff: ac, time: time || '' });
+                        newItems.push({ id: `upload-${Date.now()}-${idx}`, name, empId: empRecord ? empRecord.id : '', level: levelNum, careerLevel: cl, supervisor: sv, allowanceCompoff: ac, time: time || '' });
                     }
                 });
 
@@ -608,7 +639,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         <TextField size="small" value={li.name} variant="standard"
                                                             onChange={e => updateField(li.id, 'name', e.target.value)}
                                                             InputProps={{ sx: { fontSize: 11 } }} fullWidth />
-                                                    ) : <Typography sx={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{li.name}</Typography>}
+                                                    ) : <Typography sx={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{li.name}{li.empId ? ` (${li.empId})` : ''}</Typography>}
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 4px' }}>
                                                     <Typography sx={{
@@ -616,7 +647,7 @@ export default function TeamDetail({ entryId, teamId, onRefresh }) {
                                                         color: '#c7d2fe', px: '6px', py: '4px',
                                                         textAlign: 'center',
                                                     }}>
-                                                        {li.careerLevel || '—'}
+                                                        {getNumericLevel(li)}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell sx={{ p: '4px 4px' }}>
