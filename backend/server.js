@@ -832,7 +832,7 @@ app.get('/api/entries/:id/export', async (req, res) => {
                     releaseDate: i === 0 ? entry.date : '',
                     teamName: i === 0 ? t.teamName : '',
                     leadName: i === 0 ? t.leadName : '',
-                    memberName: li.name ? (empInfo.empId ? `${li.name} (${empInfo.empId})` : li.name) : '',
+                    memberName: empInfo.empId || '',
                     careerLevel: getNumericLevel(enrichedLi),
                     loginTime: parts[0] || '',
                     logoutTime: parts[1] || '',
@@ -886,7 +886,7 @@ app.get('/api/entries/:eid/teams/:tid/export', async (req, res) => {
         const empInfo = lookupEmployeeInfo(li);
         const enrichedLi = { ...li, empId: empInfo.empId, level: empInfo.level };
         return {
-            name: li.name ? (empInfo.empId ? `${li.name} (${empInfo.empId})` : li.name) : '',
+            name: empInfo.empId || '',
             careerLevel: getNumericLevel(enrichedLi),
             supervisor: li.supervisor || '',
             loginTime: parts[0] || '',
@@ -944,7 +944,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
             const hrs = calcTotalHoursServer(li.time || '');
             const empInfo = lookupEmployeeInfo(li);
             const enrichedLi = { ...li, empId: empInfo.empId, level: empInfo.level };
-            return { num: i + 1, name: li.name ? (empInfo.empId ? `${li.name} (${empInfo.empId})` : li.name) : '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, supportType: getSupportTypeServer(hrs) };
+            return { num: i + 1, name: empInfo.empId || '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, supportType: getSupportTypeServer(hrs) };
         });
         getRowBg = () => ALLOWANCE_BG;
     } else if (exportType === 'compoff') {
@@ -965,7 +965,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
             const hrs = calcTotalHoursServer(li.time || '');
             const empInfo = lookupEmployeeInfo(li);
             const enrichedLi = { ...li, empId: empInfo.empId, level: empInfo.level };
-            return { num: i + 1, name: li.name ? (empInfo.empId ? `${li.name} (${empInfo.empId})` : li.name) : '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs };
+            return { num: i + 1, name: empInfo.empId || '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs };
         });
         getRowBg = () => COMPOFF_BG;
     } else if (exportType === 'members') {
@@ -987,7 +987,7 @@ app.get('/api/entries/:id/dialog-export/:type', async (req, res) => {
             const hrs = calcTotalHoursServer(li.time || '');
             const empInfo = lookupEmployeeInfo(li);
             const enrichedLi = { ...li, empId: empInfo.empId, level: empInfo.level };
-            return { num: i + 1, name: li.name ? (empInfo.empId ? `${li.name} (${empInfo.empId})` : li.name) : '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, type: li.allowanceCompoff || '', _type: li.allowanceCompoff };
+            return { num: i + 1, name: empInfo.empId || '', careerLevel: getNumericLevel(enrichedLi), supervisor: li.supervisor || '', team: li.teamName, lead: li.leadName, loginTime: parts[0] || '', logoutTime: parts[1] || '', totalHours: hrs, type: li.allowanceCompoff || '', _type: li.allowanceCompoff };
         });
         getRowBg = (row, idx) => row._type === 'Allowance' ? ALLOWANCE_BG : row._type === 'Compoff' ? COMPOFF_BG : ALT[idx % 2];
     } else if (exportType === 'teams') {

@@ -917,7 +917,7 @@ def export_entry(eid):
                     "releaseDate": entry["date"] if i == 0 else "",
                     "teamName": t["teamName"] if i == 0 else "",
                     "leadName": t["leadName"] if i == 0 else "",
-                    "memberName": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "",
+                    "memberName": emp_info['empId'] if emp_info['empId'] else "",
                     "careerLevel": get_numeric_level(enriched_li),
                     "loginTime": parts[0] if len(parts) > 0 else "",
                     "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -975,7 +975,7 @@ def export_team(eid, tid):
         emp_info = lookup_employee_info(li)
         enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
         row_data_list.append({
-            "name": (li.get("name", "") + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "",
+            "name": emp_info['empId'] if emp_info['empId'] else "",
             "careerLevel": get_numeric_level(enriched_li),
             "supervisor": li.get("supervisor", ""),
             "loginTime": parts[0] if len(parts) > 0 else "",
@@ -1040,7 +1040,7 @@ def dialog_export(eid, export_type):
             emp_info = lookup_employee_info(li)
             enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
+                "num": i + 1, "name": emp_info['empId'] if emp_info['empId'] else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1068,7 +1068,7 @@ def dialog_export(eid, export_type):
             emp_info = lookup_employee_info(li)
             enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
+                "num": i + 1, "name": emp_info['empId'] if emp_info['empId'] else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
@@ -1097,7 +1097,7 @@ def dialog_export(eid, export_type):
             emp_info = lookup_employee_info(li)
             enriched_li = {**li, "empId": emp_info["empId"], "level": emp_info["level"]}
             row_data_list.append({
-                "num": i + 1, "name": (li["name"] + (f" ({emp_info['empId']})" if emp_info["empId"] else "")) if li.get("name") else "", "careerLevel": get_numeric_level(enriched_li),
+                "num": i + 1, "name": emp_info['empId'] if emp_info['empId'] else "", "careerLevel": get_numeric_level(enriched_li),
                 "supervisor": li.get("supervisor", ""), "team": li["teamName"], "lead": li["leadName"],
                 "loginTime": parts[0] if len(parts) > 0 else "",
                 "logoutTime": parts[1] if len(parts) > 1 else "",
